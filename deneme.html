@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PitWall Manager — Deneme ligi (çevrimdışı)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">PITWALL<span>MANAGER</span></div>
+    <div id="topInfo" class="top-info"></div>
+  </header>
+
+  <main>
+    <!-- TAKIM SEÇİMİ -->
+    <section id="menu" class="screen">
+      <div class="hero">
+        <h1>Takımını seç</h1>
+        <p>Her gün bir yarış: yarıştan önce stratejini kur, yarışı izle, kazandığın parayla aracını geliştir. 25 yarışlık sezonun sonunda şampiyon ol.</p>
+        <button id="continueBtn" class="btn primary hidden">Kayıtlı oyuna devam et</button>
+      </div>
+      <div id="teamGrid" class="team-grid"></div>
+    </section>
+
+    <!-- MERKEZ -->
+    <section id="hub" class="screen hidden">
+      <div class="hub-grid">
+        <div>
+          <div class="card">
+            <div class="label">Sıradaki yarış</div>
+            <div id="hubRace"></div>
+            <div class="btn-row">
+              <button id="goStrategyBtn" class="btn primary">Strateji kur →</button>
+              <button id="goGarageBtn" class="btn">🔧 Garaj</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="label">Takımın</div>
+            <h2 id="hubTeam"></h2>
+            <div id="hubMoney" class="money"></div>
+            <div id="hubCar"></div>
+            <div class="btn-row"><button id="resetBtn" class="btn ghost">Yeni oyun</button></div>
+          </div>
+        </div>
+        <div class="card" id="hubStandings"></div>
+      </div>
+    </section>
+
+    <!-- GARAJ -->
+    <section id="garage" class="screen hidden">
+      <div class="card narrow">
+        <div class="garage-head">
+          <h2>🔧 Garaj</h2>
+          <div id="garageMoney" class="money"></div>
+        </div>
+        <p class="muted">Her geliştirme parçayı güçlendirir (90'a kadar +2, sonra +1). Her seviye bir öncekinden %50 daha pahalıdır. Rakip takımlar da kazandıkları parayla geliştirme yapıyor!</p>
+        <div id="parts"></div>
+        <div class="btn-row"><button id="garageBack" class="btn primary">← Merkeze dön</button></div>
+      </div>
+    </section>
+
+    <!-- STRATEJİ -->
+    <section id="strategy" class="screen hidden">
+      <div class="card race-head">
+        <div>
+          <div class="label">Yarış öncesi strateji</div>
+          <div id="stratTitle" class="race-title"></div>
+          <div id="stratInfo" class="muted"></div>
+        </div>
+        <div class="btn-row" style="margin:0">
+          <button id="stratBack" class="btn ghost">← Geri</button>
+          <button id="runRaceBtn" class="btn primary">🏁 Stratejiyi onayla ve yarışı başlat</button>
+        </div>
+      </div>
+      <div id="plans" class="plans"></div>
+    </section>
+
+    <!-- YARIŞ (TEKRAR İZLEME) -->
+    <section id="race" class="screen hidden">
+      <div class="race-head card">
+        <div>
+          <div id="raceTitle" class="race-title"></div>
+          <div id="lapInfo" class="lap-info"></div>
+        </div>
+        <div class="controls">
+          <button id="playBtn" class="btn primary">▶ İzle</button>
+          <div class="speed">
+            <span>Hız:</span>
+            <button class="chip" data-speed="1000">1x</button>
+            <button class="chip" data-speed="400">2x</button>
+            <button class="chip" data-speed="120">4x</button>
+          </div>
+          <button id="toEndBtn" class="btn ghost">Sonucu göster ⏭</button>
+        </div>
+        <input id="scrub" type="range" min="0" max="1" value="0" class="scrub">
+      </div>
+      <div class="race-grid">
+        <div class="card"><table id="board" class="board"></table></div>
+        <div class="side">
+          <div id="myCars"></div>
+          <div class="card">
+            <h3>Yarış olayları</h3>
+            <label class="muted small"><input type="checkbox" id="onlyMine"> Sadece benim pilotlarım</label>
+            <ul id="log" class="log"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SONUÇ -->
+    <section id="results" class="screen hidden">
+      <div class="card narrow">
+        <h2 id="resTitle"></h2>
+        <div id="resPrize" class="prize"></div>
+        <table id="resTable" class="board"></table>
+        <div class="btn-row">
+          <button id="resGarage" class="btn">🔧 Garaja git</button>
+          <button id="resContinue" class="btn primary">Merkeze dön →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEZON SONU -->
+    <section id="seasonEnd" class="screen hidden">
+      <div class="card narrow">
+        <h2>🏆 Sezon bitti!</h2>
+        <div id="seasonSummary"></div>
+        <div id="seasonStandings"></div>
+        <div class="btn-row"><button id="newSeasonBtn" class="btn primary">Yeni oyun</button></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Ortak dosyalar (ileride sunucu da bunları kullanacak) -->
+  <script src="shared/data.js"></script>
+  <script src="shared/engine.js"></script>
+  <!-- Arayüz -->
+  <script src="app.js"></script>
+</body>
+</html>

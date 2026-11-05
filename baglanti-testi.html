@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PitWall — Bağlantı testi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><div class="logo">PITWALL<span>MANAGER</span></div><div class="top-info">Bağlantı testi</div></header>
+  <main>
+    <div class="card narrow">
+      <h2>Supabase bağlantı testi</h2>
+      <p class="muted">Bu sayfa veritabanına bağlanıp kurulumun doğru yapıldığını kontrol eder.</p>
+      <ul id="checks" class="log" style="max-height:none"></ul>
+      <div id="league"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    const list = document.getElementById("checks");
+    const add = (ok, text) => { list.insertAdjacentHTML("beforeend", `<li class="${ok ? "" : "bad"}">${ok ? "✅" : "❌"} ${text}</li>`); };
+
+    (async () => {
+      if (!window.supabase) { add(false, "Supabase kütüphanesi yüklenemedi (internet bağlantını kontrol et)"); return; }
+      const db = supabase.createClient(PW_CONFIG.SUPABASE_URL, PW_CONFIG.SUPABASE_KEY);
+      add(true, "Supabase kütüphanesi yüklendi");
+
+      const c = await db.from("countries").select("code", { count: "exact", head: true });
+      if (c.error) { add(false, "Ülkeler tablosu okunamadı: " + c.error.message + " — kurulum SQL'i çalıştırıldı mı?"); return; }
+      add(true, `Veritabanına bağlanıldı · ${c.count} ülke var`);
+
+      const s = await db.from("seasons").select("*").eq("status", "active").maybeSingle();
+      if (s.error || !s.data) { add(false, "Aktif sezon bulunamadı"); return; }
+      add(true, `Aktif sezon: ${s.data.number} · Başlangıç: ${s.data.start_date}`);
+
+      const l = await db.from("leagues").select("id,name").eq("country_code", "TR").order("tier").limit(1).maybeSingle();
+      if (l.error || !l.data) { add(false, "Türkiye ligi bulunamadı"); return; }
+      add(true, `Lig bulundu: ${l.data.name}`);
+
+      const t = await db.from("teams").select("name,color,owner_id,drivers(name,seat)").eq("league_id", l.data.id).order("name");
+      const r = await db.from("races").select("round,track_id,scheduled_at").eq("league_id", l.data.id).order("round").limit(3);
+      add(!t.error, `${t.data?.length || 0} takım, ${(t.data || []).reduce((n, x) => n + x.drivers.length, 0)} pilot`);
+      add(!r.error, `İlk yarış: ${r.data?.[0] ? new Date(r.data[0].scheduled_at).toLocaleString("tr-TR") : "—"}`);
+
+      document.getElementById("league").innerHTML = `<h3 style="margin-top:16px">${l.data.name}</h3><table class="mini">${t.data.map((x) =>
+        `<tr><td><span class="dot" style="background:${x.color}"></span>${x.name}</td><td class="muted">${x.drivers.sort((a, b) => a.seat - b.seat).map((d) => d.name).join(", ")}</td><td>${x.owner_id ? "👤 oyuncu" : "🤖 bot"}</td></tr>`).join("")}</table>`;
+      add(true, "<b>Her şey hazır! 🎉</b>");
+    })();
+  </script>
+</body>
+</html>
