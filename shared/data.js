@@ -8,7 +8,22 @@
     S: { name: "Yumuşak", offset: -0.5, wear: 5.2 },
     M: { name: "Orta",    offset: -0.22, wear: 3.2 },
     H: { name: "Sert",    offset:  0.0, wear: 2.2 },
+    // Islak hava lastikleri: plana yazılmaz, yağmur gelince mühendis otomatik takar
+    I: { name: "Ara",     offset:  0.0, wear: 3.0, wet: true },
+    W: { name: "Yağmur",  offset:  0.0, wear: 2.4, wet: true },
   };
+  const DRY = ["S", "M", "H"];
+
+  // Yağmur tepkisi: ıslaklık (0-1) hangi değere gelince lastik değiştirilir
+  //  toI: kaygandan araya · toW: aradan yağmura · fromW: yağmurdan araya · toSlick: aradan kaygana
+  const WET_CALLS = {
+    early:  { name: "Erken",  toI: 0.15, toW: 0.68, fromW: 0.74, toSlick: 0.26 },
+    normal: { name: "Normal", toI: 0.22, toW: 0.76, fromW: 0.68, toSlick: 0.19 },
+    late:   { name: "Geç",    toI: 0.32, toW: 0.85, fromW: 0.60, toSlick: 0.12 },
+  };
+  // Pistlerin yağmur iklimi (0 = çöl, 0.5 = sık yağmur)
+  const RAIN = { bhr: .03, sau: .03, aus: .2, jpn: .32, chn: .25, mia: .22, imo: .28, mon: .2, can: .28, esp: .12, aut: .28,
+    gbr: .36, hun: .24, bel: .42, ned: .32, ita: .16, aze: .08, sgp: .35, tur: .24, usa: .16, mex: .12, bra: .4, lvg: .04, qat: .02, abu: .02 };
 
   // Sürüş modları
   const MODES = {
@@ -110,6 +125,8 @@
     { id: "abu", name: "Abu Dabi GP",        flag: "🇦🇪", type: "balanced",  laps: 58, baseLap: 87,  pitLoss: 22, degMult: 0.90, overtake: 0.9 },
   ];
 
+  TRACKS.forEach((t) => (t.rain = RAIN[t.id] || 0.15));
+
   // Deneme ligi: 11 takım, 22 pilot (online sürümde her ülke ligi bu yapıda olacak)
   const c = (engine, aero, chassis, reliability, pitcrew) => ({ engine, aero, chassis, reliability, pitcrew });
   const DEMO_TEAMS = [
@@ -126,5 +143,5 @@
     { id: "sakura",   name: "Sakura Racing",      color: "#f06595", car: c(76, 78, 77, 76, 78), drivers: [{ id: "sakura-1", name: "Haruto Sato", skill: 79 }, { id: "sakura-2", name: "Felix Brandt", skill: 76 }] },
   ];
 
-  g.PW_DATA = { COMPOUNDS, MODES, POINTS, PARTS, ECONOMY, TRACK_TYPES, TRACKS, DEMO_TEAMS, upgradeCost, upgradeGain, prizeFor, DRIVER_ATTRS, trainCost, devPointsFor, driverOverall, driverValue, driverSalary, MARKET };
+  g.PW_DATA = { COMPOUNDS, DRY, WET_CALLS, MODES, POINTS, PARTS, ECONOMY, TRACK_TYPES, TRACKS, DEMO_TEAMS, upgradeCost, upgradeGain, prizeFor, DRIVER_ATTRS, trainCost, devPointsFor, driverOverall, driverValue, driverSalary, MARKET };
 })(typeof globalThis !== "undefined" ? globalThis : window);

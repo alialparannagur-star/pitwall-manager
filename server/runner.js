@@ -35,7 +35,12 @@
       });
     });
 
-    const sim = E.simulateRace({ track, entries, seed: Number(input.seed) });
+    // Hava: tahmin herkese açık (yarış kimliğinden), gerçekleşen ise yarış anında gizli bir zarla belirlenir
+    const fc = E.forecast(track, input.race_id);
+    const secret = input.wx_seed != null ? Number(input.wx_seed)
+      : (g.crypto && g.crypto.getRandomValues ? g.crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 4294967296));
+    const weather = E.rollWeather(track, fc, E.rngFrom(secret));
+    const sim = E.simulateRace({ track, entries, seed: Number(input.seed), weather });
     const results = sim.results.map((r) => ({
       driver_id: r.id, team_id: r.teamId, pos: r.pos, grid: r.grid, points: r.points,
       total: r.total, best: r.best, dnf: r.dnf, pits: r.pits,
@@ -46,6 +51,7 @@
     const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
     const replay = {
       v: 2, trackId: track.id, round: input.round, title: input.title || null,
+      fc, wx: sim.laps.map((s) => s.w),
       entries: entries.map((e) => ({ id: e.id, name: e.name, skill: e.skill, nat: e.nat, age: e.age, teamId: e.teamId, teamName: e.teamName, color: e.color, plan: e.strategy, source: e.source })),
       results: sim.results.map((r) => ({ i: idx[r.id], pos: r.pos, grid: r.grid, total: r.total, gap: r.gap, best: r.best, pits: r.pits, dnf: r.dnf, penalty: r.penalty, fastest: r.fastest, points: r.points })),
       laps: sim.laps.map((s) => {

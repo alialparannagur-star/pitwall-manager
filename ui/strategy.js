@@ -3,17 +3,33 @@
    PW_Strategy.render(kutu, { track, car, drivers, color, plans, sugg, onChange })
    ========================================================= */
 (function () {
-  const { COMPOUNDS, MODES } = PW_DATA;
+  const { COMPOUNDS, MODES, DRY, WET_CALLS } = PW_DATA;
   const E = PW_ENGINE;
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   function tyreChips(key, sel) {
-    return Object.keys(COMPOUNDS).map((k) =>
+    return DRY.map((k) =>
       `<button class="chip ${sel === k ? "active" : ""}" data-tyre="${key}:${k}"><span class="tyre ${k}">${k}</span>${T(COMPOUNDS[k].name)}</button>`).join("");
   }
 
   const normalize = (plan, track) => E.normalizePlan(plan, track);
+
+  // Yarış öncesi hava tahmini (yarışın kimliğinden üretilir, herkes aynısını görür)
+  const pct = (n) => (window.PW_I18N && PW_I18N.lang === "en" ? n + "%" : "%" + n);
+  function forecastHtml(track, raceId) {
+    const fc = E.forecast(track, raceId);
+    if (!fc.p) return `☀️ ${T("Kuru hava bekleniyor")}`;
+    const icon = fc.p >= 0.5 ? (fc.heavy ? "⛈️" : "🌧️") : "🌦️";
+    const when = fc.from === 0 ? T("yarış ıslak başlayabilir") : T("en olası: {a}.–{b}. turlar", { a: fc.from, b: fc.to });
+    return `${icon} ${T("Yağmur ihtimali")} <b>${pct(Math.round(fc.p * 100))}</b> · ${when} · ${T(fc.heavy ? "şiddetli" : "hafif")}`;
+  }
+
+  const WET_HELP = {
+    early: "Erken: ilk damlalarda ara lastiğe geçer, pist kururken kaygan lastiğe de erken döner. Yağmur gerçekten gelirse kazandırır; sadece çiseleyip geçerse boşa pit stop yapmış olursun.",
+    normal: "Normal: pist belirgin şekilde ıslanınca geçer. Çoğu durumda güvenli orta yol.",
+    late: "Geç: kaygan lastikle olabildiğince dayanır. Kısa ve hafif yağmurda zaman kazandırır; yağmur şiddetlenirse kayıp ve kaza riski artar.",
+  };
 
   function render(box, ctx) {
     const { track: tr, car, drivers, color, plans } = ctx;
@@ -61,6 +77,10 @@
         <div class="dp-label">${T("Lastik güvenlik sınırı: aşınma bu değere ulaşırsa erken pite gir")}</div>
         <div class="row">${[75, 85, 95].map((v) => `<button class="chip ${plan.wearLimit === v ? "active" : ""}" data-limit="${v}">%${v}</button>`).join("")}</div>
 
+        <div class="dp-label">${T("Yağmur gelirse: ara ve yağmur lastiğine ne zaman geçilsin?")}</div>
+        <div class="row">${Object.entries(WET_CALLS).map(([k, info]) => `<button class="chip ${plan.wetCall === k ? "active" : ""}" data-wet="${k}">${T(info.name)}</button>`).join("")}</div>
+        <div class="small muted wet-help">${T(WET_HELP[plan.wetCall] || WET_HELP.normal)}</div>
+
         <div class="dp-label">${T("Mühendislerin önerileri")}</div>
         <div class="sugg">${sugg.map((o, i) => `
           <button class="chip" data-sugg="${i}">
@@ -82,10 +102,12 @@
           plan.stops.push({ lap: Math.min(tr.laps - 1, Math.round((last + tr.laps) / 2)), tyre: plan.start === "H" ? "M" : "H" });
         } else if (b.dataset.mode) {
           plan.mode = b.dataset.mode;
+        } else if (b.dataset.wet) {
+          plan.wetCall = b.dataset.wet;
         } else if (b.dataset.limit) {
           plan.wearLimit = +b.dataset.limit;
         } else if (b.dataset.sugg) {
-          plans[k] = clone(sugg[+b.dataset.sugg].plan);
+          plans[k] = Object.assign(clone(sugg[+b.dataset.sugg].plan), { wetCall: plan.wetCall });
         } else return;
         rerender();
       });
@@ -103,5 +125,5 @@
     });
   }
 
-  window.PW_Strategy = { render, normalize };
+  window.PW_Strategy = { render, normalize, forecastHtml };
 })();

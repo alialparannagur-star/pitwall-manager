@@ -186,7 +186,7 @@ function showStrategy() {
 }
 
 function tyreChips(key, sel) {
-  return Object.keys(COMPOUNDS).map((k) =>
+  return PW_DATA.DRY.map((k) =>
     `<button class="chip ${sel === k ? "active" : ""}" data-tyre="${key}:${k}"><span class="tyre ${k}">${k}</span>${COMPOUNDS[k].name}</button>`).join("");
 }
 

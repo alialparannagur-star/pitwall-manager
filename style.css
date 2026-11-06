@@ -128,6 +128,8 @@ table.board { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
 .tyre.S { border-color: #ff3b3b; }
 .tyre.M { border-color: #ffd43b; }
 .tyre.H { border-color: var(--tyre-h); }
+.tyre.I { border-color: #2fbf71; }
+.tyre.W { border-color: #339af0; }
 
 /* Pilot paneli */
 .driver-panel { border-left: 5px solid; }
@@ -181,7 +183,7 @@ table.board { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
 .x-btn { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; }
 .stints { display: flex; height: 34px; border-radius: 6px; overflow: hidden; margin: 6px 0 4px; border: 1px solid var(--line); }
 .stint { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 700; border-right: 2px solid var(--bg); color: #000; overflow: hidden; white-space: nowrap; }
-.stint.S { background: #ff6b6b; } .stint.M { background: #ffd43b; } .stint.H { background: #e9ecef; }
+.stint.S { background: #ff6b6b; } .stint.M { background: #ffd43b; } .stint.H { background: #e9ecef; } .stint.I { background: #69db7c; } .stint.W { background: #74c0fc; }
 .stint-notes { font-size: 12px; color: var(--muted); }
 .warn { color: var(--warn); font-size: 13px; margin-top: 6px; }
 .ok { color: var(--good-text); font-size: 13px; margin-top: 6px; }
@@ -412,3 +414,11 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
   background: var(--panel2); color: var(--text); font: inherit; }
 .fb-foot { text-align: right; margin-top: 4px; }
 @media (max-width: 700px) { .fb-btn { right: 12px; bottom: 12px; padding: 10px 13px; } .fb-btn .fb-label { display: none; } }
+
+/* Hava durumu */
+.forecast { margin: 6px 0 8px; }
+.wet-help { margin-top: 6px; max-width: 640px; line-height: 1.45; }
+.wx-badge { display: inline-block; margin-left: 10px; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--panel2); border: 1px solid var(--line); vertical-align: middle; }
+.wx-badge.damp { border-color: #74c0fc; }
+.wx-badge.wet { background: #1c3d5a; color: #d0ebff; border-color: #339af0; }
+.wx-badge.vwet { background: #10263b; color: #d0ebff; border-color: #1c7ed6; }

@@ -450,6 +450,7 @@ function renderNextRace() {
     ${r.title ? `<div class="world-tag">🌍 ${T("DÜNYA TURNUVASI")} · ${esc(trStored(r.title))}</div>` : ""}
     <p class="muted">${r.title ? "" : esc(raceLabel(r)) + " · "}${fmtDate(r.scheduled_at)} · ${T("{n} tur", { n: tr.laps })}</p>
     <p>${T("Pist tipi")}: <b>${T(TRACK_TYPES[tr.type].name)}</b> (${T("en önemli parça")}: ${T(PARTS[key].name)}) · ${T("Lastik aşınması")}: <b>${degLabel(tr.degMult)}</b> · ${T("Sollama")}: <b>${otLabel(tr.overtake)}</b></p>
+    <p class="forecast">${PW_Strategy.forecastHtml(tr, r.id)}</p>
     <div class="countdown" id="countdown"></div>
     <div id="stratState" class="small muted"></div>`;
   const tick = () => {
@@ -1088,7 +1089,8 @@ async function showStrategy() {
   strat.ctx = { track: tr, car, drivers, color: ME.team.color, plans, suggs, onChange: () => { strat.dirty = true; updateStratStatus(saved.length > 0); } };
 
   $("#stratTitle").textContent = `${tr.flag} ${trackName(tr)} · ${r.title ? "🌍 " + trStored(r.title) : T("Yarış") + " " + r.round}`;
-  $("#stratInfo").textContent = `${fmtDate(r.scheduled_at)} · ${T("{n} tur", { n: tr.laps })} · ${T("Lastik aşınması")}: ${degLabel(tr.degMult)} · ${T("Sollama")}: ${otLabel(tr.overtake)} · ${T("Pit kaybı ~{n} sn", { n: tr.pitLoss })}`;
+  $("#stratInfo").innerHTML = `${esc(fmtDate(r.scheduled_at))} · ${T("{n} tur", { n: tr.laps })} · ${T("Lastik aşınması")}: ${degLabel(tr.degMult)} · ${T("Sollama")}: ${otLabel(tr.overtake)} · ${T("Pit kaybı ~{n} sn", { n: tr.pitLoss })}
+    <div class="forecast">${PW_Strategy.forecastHtml(tr, r.id)} <span class="muted small">· ${T("Tahmin her zaman tutmaz. Yağmur gelirse mühendislerin seçtiğin tepkiye göre lastik değiştirir.")}</span></div>`;
   updateStratStatus(saved.length > 0);
   PW_Strategy.render($("#plans"), strat.ctx);
   show("strategy");

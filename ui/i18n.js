@@ -74,6 +74,26 @@
     "Teşekkürler! Mesajın ulaştı.": "Thanks! Your message was sent.",
     "Önce giriş yapmalısın.": "You need to log in first.",
     "Bugünlük mesaj sınırına ulaştın (10). Yarın tekrar yazabilirsin.": "You've reached today's message limit (10). You can write again tomorrow.",
+    "Ara": "Inter",
+    "Yağmur": "Wet",
+    "Erken": "Early",
+    "Geç": "Late",
+    "Kuru hava bekleniyor": "Dry weather expected",
+    "yarış ıslak başlayabilir": "the race may start wet",
+    "en olası: {a}.–{b}. turlar": "most likely laps {a}–{b}",
+    "Yağmur ihtimali": "Chance of rain",
+    "şiddetli": "heavy",
+    "hafif": "light",
+    "Yağmur gelirse: ara ve yağmur lastiğine ne zaman geçilsin?": "If it rains: when should we switch to intermediates and wets?",
+    "Erken: ilk damlalarda ara lastiğe geçer, pist kururken kaygan lastiğe de erken döner. Yağmur gerçekten gelirse kazandırır; sadece çiseleyip geçerse boşa pit stop yapmış olursun.": "Early: switches to intermediates at the first drops and back to slicks early as the track dries. Pays off if the rain really comes; if it only drizzles, you'll have made a wasted pit stop.",
+    "Normal: pist belirgin şekilde ıslanınca geçer. Çoğu durumda güvenli orta yol.": "Normal: switches once the track is clearly wet. The safe middle ground most of the time.",
+    "Geç: kaygan lastikle olabildiğince dayanır. Kısa ve hafif yağmurda zaman kazandırır; yağmur şiddetlenirse kayıp ve kaza riski artar.": "Late: stays on slicks as long as possible. Gains time in short, light showers; if the rain gets heavy, you lose time and the crash risk rises.",
+    "Tahmin her zaman tutmaz. Yağmur gelirse mühendislerin seçtiğin tepkiye göre lastik değiştirir.": "Forecasts aren't always right. If it rains, your engineers change tyres according to the reaction you choose.",
+    "Kuru": "Dry",
+    "Nemli": "Damp",
+    "Islak": "Wet",
+    "Çok ıslak": "Very wet",
+    "Yağmur tepkisi": "Rain reaction",
     "Çıkış": "Log out", "Açık temaya geç": "Switch to light theme", "Koyu temaya geç": "Switch to dark theme", "Yükleniyor…": "Loading…", "Bekle…": "Please wait…", "Sil": "Delete", "Vazgeç": "Cancel",
     "← Geri": "← Back", "← Merkez": "← Home", "← Merkeze dön": "← Back to home", "Merkeze dön →": "Back to home →",
     "oyuncu": "player", "bot": "bot", "Bot takım": "Bot team", "Menajer": "Manager",
@@ -328,7 +348,7 @@
     if (lang === "tr" || !ev.kind) return ev.text;
     const n = (k) => (entries[ev.ids[k]] ? entries[ev.ids[k]].name : "?");
     const p = ev.params || {};
-    const tyre = (c) => ({ S: "Soft", M: "Medium", H: "Hard" }[c] || c);
+    const tyre = (c) => ({ S: "Soft", M: "Medium", H: "Hard", I: "Intermediate", W: "Wet" }[c] || c);
     const txt = ev.text || "";
     let kind = ev.kind;
     if (kind === "pit" && !p.tyre) { // eski kayıtlar
@@ -346,11 +366,18 @@
       case "pit_slow": return `🐢 Slow pit stop for ${n(0)}! (+${sec}s)`;
       case "pit": {
         const c = p.tyre || ({ "Yumuşak": "S", "Orta": "M", "Sert": "H" }[(txt.match(/→ (\S+)$/) || [])[1]]);
-        return `🔧 ${n(0)} pits → ${tyre(c)}`;
+        return `🔧 ${n(0)} pits → ${tyre(c)}${p.wx ? " (weather)" : ""}`;
       }
       case "overtake": return /liderliği/.test(txt) ? `👑 ${n(0)} takes the lead!` : `⚔️ ${n(0)} overtakes ${n(1)}`;
       case "lead": return `👑 ${n(0)} takes the lead!`;
       case "penalty": return `⚠️ ${n(0)}: +20s penalty for not using two tyre compounds`;
+      case "crash": return `💥 ${n(0)} lost control on the wet track and is out!`;
+      case "wet_start": return "🌧️ The race starts on a wet track";
+      case "drizzle": return "🌦️ A light drizzle has started";
+      case "rain_start": return "🌧️ It's raining!";
+      case "rain_heavy": return "⛈️ The rain is getting heavier, the track is very wet";
+      case "rain_stop": return "🌤️ The rain has stopped, the track is starting to dry";
+      case "dry_line": return "☀️ A dry line has appeared";
       default: return txt;
     }
   }

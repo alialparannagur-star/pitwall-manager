@@ -19,6 +19,14 @@
     return `${h}:${String(m).padStart(2, "0")}:${s}`;
   }
 
+  // Pist durumu rozeti (ıslaklık 0-100)
+  function wxBadge(wx, i) {
+    if (!wx || !wx.some((x) => x > 0)) return "";
+    const w = wx[Math.min(i, wx.length - 1)] || 0;
+    const [icon, label, cls] = w < 5 ? ["☀️", "Kuru", "dry"] : w < 22 ? ["🌦️", "Nemli", "damp"] : w < 60 ? ["🌧️", "Islak", "wet"] : ["⛈️", "Çok ıslak", "vwet"];
+    return ` <span class="wx-badge ${cls}">${icon} ${T(label)}${w >= 5 ? ` · ${PW_I18N.lang === "en" ? w + "%" : "%" + w}` : ""}</span>`;
+  }
+  const wetCallName = (plan) => (PW_DATA.WET_CALLS[plan.wetCall] || PW_DATA.WET_CALLS.normal).name;
   const flag = (e) => (e.nat && window.PW_FLAGS && window.PW_FLAGS[e.nat] ? window.PW_FLAGS[e.nat] + " " : "");
   let S = null; // aktif tekrar
   const view = { i: 0, timer: null, speed: 400 };
@@ -33,6 +41,7 @@
       results: rep.results.map((r) => ({ ...r, e: entries[r.i] })),
       laps: rep.laps.map((row) => row.map((c, i) => ({ i, t: c[0], c: c[1], a: c[2], w: c[3], p: c[4], d: c[5], l: c[6] }))),
       events: rep.events.map((e) => ({ lap: e[0], text: e[1], ids: e[2], kind: e[3], params: e[4] || null })),
+      wx: rep.wx || null,
     };
   }
 
@@ -86,7 +95,7 @@
     const i = view.i, last = i >= lastIdx();
     const row = R.laps[i];
     $("#scrub").value = i;
-    $("#lapInfo").innerHTML = i === 0 ? T("Başlangıç dizilişi") : last ? `<b>${T("Damalı bayrak!")}</b> 🏁` : `${T("Tur")} <b>${i}</b> / ${R.track.laps}`;
+    $("#lapInfo").innerHTML = (i === 0 ? T("Başlangıç dizilişi") : last ? `<b>${T("Damalı bayrak!")}</b> 🏁` : `${T("Tur")} <b>${i}</b> / ${R.track.laps}`) + wxBadge(R.wx, i);
 
     const order = last
       ? R.results.map((r) => row[r.i])
@@ -115,7 +124,7 @@
           <span class="dp-gap">${c.d || c === leader ? "" : "+" + (c.t - leader.t).toFixed(1) + " sn"}</span></div>
         <div class="dp-tyre"><span class="tyre ${c.c}">${c.c}</span><span>${T(COMPOUNDS[c.c].name)} · ${T("{n} tur", { n: c.a })} · ${T("Aşınma")} %${c.w}</span></div>
         <div class="wearbar"><div class="wearfill" style="width:${c.w}%;background:${wearColor(c.w)}"></div></div>
-        <div class="small muted">Plan (${src}): ${e.plan.start} → ${e.plan.stops.map((s) => `${s.tyre} (${T("tur")} ${s.lap})`).join(" → ")} · ${T(MODES[e.plan.mode].name)}</div>
+        <div class="small muted">Plan (${src}): ${e.plan.start} → ${e.plan.stops.map((s) => `${s.tyre} (${T("tur")} ${s.lap})`).join(" → ")} · ${T(MODES[e.plan.mode].name)}${R.wx && R.wx.some((x) => x > 0) ? ` · ${T("Yağmur tepkisi")}: ${T(wetCallName(e.plan))}` : ""}</div>
       </div>`;
     }).join("");
 
