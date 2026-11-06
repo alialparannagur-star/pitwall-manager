@@ -129,6 +129,7 @@ async function enter() {
     window.PW_FLAGS = ME.flags;
   }
   document.querySelector(".nav").classList.remove("hidden");
+  $("#fbBtn").classList.remove("hidden");
   await loadLeague();
   showHub();
 }
@@ -246,9 +247,47 @@ $("#newpassForm").onsubmit = async (ev) => {
 $("#logoutBtn").onclick = async () => {
   await api.signOut();
   document.querySelector(".nav").classList.add("hidden");
+  $("#fbBtn").classList.add("hidden");
   Object.assign(ME, { user: null, team: null, league: null, teams: [], races: [] });
   clearInterval(countdownTimer);
   showAuth();
+};
+
+/* ---------- GERİ BİLDİRİM ---------- */
+let fbKind = "bug";
+const FB_HINT = {
+  bug: "Ne oldu? Hangi ekrandaydın, ne yapınca oldu?",
+  idea: "Oyuna ne eklenmeli ya da ne değişmeli?",
+  other: "Aklındakini yaz.",
+};
+function setFbKind(k) {
+  fbKind = k;
+  document.querySelectorAll("[data-fbkind]").forEach((b) => b.classList.toggle("active", b.dataset.fbkind === k));
+  $("#fbText").placeholder = T(FB_HINT[k]);
+}
+document.querySelectorAll("[data-fbkind]").forEach((b) => (b.onclick = () => setFbKind(b.dataset.fbkind)));
+$("#fbBtn").onclick = () => {
+  setFbKind(fbKind);
+  $("#fbMsg").textContent = "";
+  $("#fbModal").classList.remove("hidden");
+  $("#fbText").focus();
+};
+$("#fbCancel").onclick = () => $("#fbModal").classList.add("hidden");
+$("#fbModal").onclick = (e) => { if (e.target.id === "fbModal") $("#fbModal").classList.add("hidden"); };
+$("#fbText").oninput = () => { $("#fbCount").textContent = `${$("#fbText").value.length} / 2000`; };
+$("#fbSend").onclick = async () => {
+  const msg = $("#fbMsg");
+  msg.className = "form-msg"; msg.textContent = "";
+  const text = $("#fbText").value.trim();
+  if (text.length < 3) { msg.className = "form-msg bad"; msg.textContent = T("Mesaj çok kısa."); return; }
+  const screen = (document.querySelector(".screen:not(.hidden)") || {}).id || "";
+  const browser = `${navigator.userAgent} · ${innerWidth}x${innerHeight} · ${PW_I18N.lang} · ${document.documentElement.dataset.theme}`;
+  try {
+    await busy($("#fbSend"), () => api.sendFeedback(fbKind, text, screen, browser));
+    $("#fbText").value = ""; $("#fbCount").textContent = "0 / 2000";
+    $("#fbModal").classList.add("hidden");
+    toast(T("Teşekkürler! Mesajın ulaştı."));
+  } catch (e) { msg.className = "form-msg bad"; msg.textContent = e.message; }
 };
 
 /* ---------- OYUNA KATILMA ---------- */

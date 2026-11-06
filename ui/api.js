@@ -65,6 +65,9 @@
       if (r.error) fail(r.error);
       recovery = false;
     },
+    async sendFeedback(kind, message, screen, browser) {
+      must(await db.rpc("send_feedback", { p_kind: kind, p_message: message, p_screen: screen, p_browser: browser }));
+    },
     async resendConfirm(email) {
       const r = await db.auth.resend({ type: "signup", email, options: { emailRedirectTo: SITE } });
       if (r.error) fail(r.error);

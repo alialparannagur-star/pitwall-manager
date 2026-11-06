@@ -17,8 +17,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=0.16">
-  <link rel="stylesheet" href="themes.css?v=0.16">
+  <link rel="stylesheet" href="style.css?v=0.17">
+  <link rel="stylesheet" href="themes.css?v=0.17">
 </head>
 <body>
   <header class="topbar">
@@ -38,6 +38,7 @@
   </header>
 
   <div id="toast" class="toast hidden"></div>
+  <button id="fbBtn" class="btn fb-btn hidden" title="Geri bildirim"><span>💬</span><span class="fb-label">Geri bildirim</span></button>
 
   <main>
     <!-- YÜKLENİYOR -->
@@ -322,6 +323,26 @@
       </div>
     </div>
 
+    <!-- GERİ BİLDİRİM PENCERESİ -->
+    <div id="fbModal" class="modal hidden">
+      <div class="modal-box card">
+        <h2>💬 Geri bildirim</h2>
+        <p class="muted">Bir hata mı buldun, aklına bir fikir mi geldi? Yaz, doğrudan geliştiriciye gider.</p>
+        <div class="fb-kinds">
+          <button class="chip active" data-fbkind="bug">🐞 Hata</button>
+          <button class="chip" data-fbkind="idea">💡 Öneri</button>
+          <button class="chip" data-fbkind="other">💬 Diğer</button>
+        </div>
+        <textarea id="fbText" maxlength="2000" rows="6" placeholder="Ne oldu? Hangi ekrandaydın, ne yapınca oldu?"></textarea>
+        <div class="fb-foot"><span id="fbCount" class="muted small">0 / 2000</span></div>
+        <div id="fbMsg" class="form-msg"></div>
+        <div class="btn-row">
+          <button id="fbCancel" class="btn ghost">Vazgeç</button>
+          <button id="fbSend" class="btn primary">Gönder</button>
+        </div>
+      </div>
+    </div>
+
     <!-- DÜNYA TURNUVASI -->
     <section id="world" class="screen hidden">
       <div class="wide-narrow" style="margin:0 auto" id="worldBody"></div>
@@ -385,13 +406,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=0.16"></script>
-  <script src="shared/data.js?v=0.16"></script>
-  <script src="shared/engine.js?v=0.16"></script>
-  <script src="ui/i18n.js?v=0.16"></script>
-  <script src="ui/api.js?v=0.16"></script>
-  <script src="ui/strategy.js?v=0.16"></script>
-  <script src="ui/replay.js?v=0.16"></script>
-  <script src="online.js?v=0.16"></script>
+  <script src="config.js?v=0.17"></script>
+  <script src="shared/data.js?v=0.17"></script>
+  <script src="shared/engine.js?v=0.17"></script>
+  <script src="ui/i18n.js?v=0.17"></script>
+  <script src="ui/api.js?v=0.17"></script>
+  <script src="ui/strategy.js?v=0.17"></script>
+  <script src="ui/replay.js?v=0.17"></script>
+  <script src="online.js?v=0.17"></script>
 </body>
 </html>
