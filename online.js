@@ -140,9 +140,13 @@ let authMode = "login";
 function showAuth() {
   $("#logoutBtn").classList.add("hidden");
   $("#topInfo").textContent = "";
-  setAuthMode("login");
-  show("auth");
+  show("landing");
 }
+function openAuth(mode) { setAuthMode(mode); show("auth"); $("#authEmail").focus(); }
+$("#lpSignup").onclick = () => openAuth("signup");
+$("#lpSignup2").onclick = () => openAuth("signup");
+$("#lpLogin").onclick = () => openAuth("login");
+$("#authBack").onclick = () => show("landing");
 function setAuthMode(mode) {
   authMode = mode;
   document.querySelectorAll("[data-authmode]").forEach((b) => b.classList.toggle("active", b.dataset.authmode === mode));

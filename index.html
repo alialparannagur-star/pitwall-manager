@@ -17,8 +17,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=0.14">
-  <link rel="stylesheet" href="themes.css?v=0.14">
+  <link rel="stylesheet" href="style.css?v=0.15">
+  <link rel="stylesheet" href="themes.css?v=0.15">
 </head>
 <body>
   <header class="topbar">
@@ -45,9 +45,66 @@
       <div class="card narrow center"><p class="muted">Yükleniyor…</p></div>
     </section>
 
+    <!-- KARŞILAMA -->
+    <section id="landing" class="screen hidden">
+      <div class="lp-hero">
+        <div class="lp-copy">
+          <div class="lp-eyebrow"><span class="lp-live"></span><span>Çevrimiçi yarış menajerliği</span></div>
+          <h1 class="lp-title"><span>Yarışı sen</span> <span class="lp-accent">pit duvarından</span> <span>kazan.</span></h1>
+          <p class="lp-lead">Ülkenin liginde bir yarış takımını devral. Pilotlarını geliştir, aracını yükselt, her yarıştan önce lastik ve pit stratejini kur. Sonra yarışı tur tur izle.</p>
+          <div class="lp-cta">
+            <button id="lpSignup" class="btn primary lp-big">Ücretsiz kayıt ol</button>
+            <button id="lpLogin" class="btn lp-big">Giriş yap</button>
+          </div>
+          <p class="muted small" data-i18n-html>Önce denemek mi istersin? <a href="deneme.html">Çevrimdışı deneme ligini oyna →</a></p>
+        </div>
+        <div class="lp-visual" aria-hidden="true">
+          <svg viewBox="20 30 820 340" class="lp-track" preserveAspectRatio="xMinYMid meet">
+            <defs><path id="lpTrack" d="M120,330 C70,330 52,290 76,255 L190,95 C212,64 252,60 280,84 L340,138 C360,156 392,152 408,130 L452,70 C474,40 526,46 536,86 L566,262 C574,312 540,346 492,346 L330,346 C300,346 288,318 262,318 C236,318 228,330 200,330 Z"/></defs>
+            <use href="#lpTrack" class="lp-t-edge"/>
+            <use href="#lpTrack" class="lp-t-road"/>
+            <use href="#lpTrack" class="lp-t-center"/>
+            <line x1="152" y1="318" x2="152" y2="342" class="lp-t-start"/>
+            <g><rect x="-9" y="-4" width="18" height="8" rx="3" fill="#E5484D" stroke="#0008" stroke-width="1"/><animateMotion dur="11s" begin="0s" repeatCount="indefinite" rotate="auto"><mpath href="#lpTrack"/></animateMotion></g><g><rect x="-9" y="-4" width="18" height="8" rx="3" fill="#3B82F6" stroke="#0008" stroke-width="1"/><animateMotion dur="11s" begin="-1.6s" repeatCount="indefinite" rotate="auto"><mpath href="#lpTrack"/></animateMotion></g><g><rect x="-9" y="-4" width="18" height="8" rx="3" fill="#F59E0B" stroke="#0008" stroke-width="1"/><animateMotion dur="11s" begin="-3.1s" repeatCount="indefinite" rotate="auto"><mpath href="#lpTrack"/></animateMotion></g><g><rect x="-9" y="-4" width="18" height="8" rx="3" fill="#10B981" stroke="#0008" stroke-width="1"/><animateMotion dur="11s" begin="-4.9s" repeatCount="indefinite" rotate="auto"><mpath href="#lpTrack"/></animateMotion></g><g><rect x="-9" y="-4" width="18" height="8" rx="3" fill="#A855F7" stroke="#0008" stroke-width="1"/><animateMotion dur="11s" begin="-6.6s" repeatCount="indefinite" rotate="auto"><mpath href="#lpTrack"/></animateMotion></g><g><rect x="-9" y="-4" width="18" height="8" rx="3" fill="#F1F1EE" stroke="#0008" stroke-width="1"/><animateMotion dur="11s" begin="-8.4s" repeatCount="indefinite" rotate="auto"><mpath href="#lpTrack"/></animateMotion></g>
+          </svg>
+          <div class="lp-tower">
+            <div class="lp-tower-head"><span class="lp-live"></span><span>CANLI</span><span class="lp-lap">Tur 34 / 57</span></div>
+            <ol>
+              <li><i style="background:#E5484D"></i><span>Rosso Veloce</span><b>Lider</b></li>
+              <li><i style="background:#3B82F6"></i><span>Alpen Blau</span><b>+1.284</b></li>
+              <li><i style="background:#F59E0B"></i><span>Phoenix Racing</span><b>+3.907</b></li>
+              <li><i style="background:#10B981"></i><span>Verde Atlas</span><b>+6.112</b></li>
+              <li><i style="background:#A855F7"></i><span>Aurora Motorsport</span><b>+9.530</b></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-stats">
+        <div><b>11</b><span>takım, her ülkede bir lig</span></div>
+        <div><b>22</b><span>pilot, hepsi gelişiyor</span></div>
+        <div><b>25</b><span>yarışlık sezon, her gün bir yarış</span></div>
+        <div><b>40</b><span>ülke, sonunda dünya finali</span></div>
+      </div>
+
+      <h2 class="lp-h2">Nasıl oynanır?</h2>
+      <div class="lp-steps">
+        <div class="card lp-step"><div class="lp-num">1</div><h3>Takımını devral</h3><p>Ülkeni seç, ligdeki boş bir takımın başına geç. Boş takımları botlar yönetir, sen geldikçe onların yerini oyuncular alır.</p></div>
+        <div class="card lp-step"><div class="lp-num">2</div><h3>Stratejini kur</h3><p>Her pilot için başlangıç lastiği, pit turları ve sürüş modu. Pistin aşınmasına ve sollama zorluğuna göre plan yap.</p></div>
+        <div class="card lp-step"><div class="lp-num">3</div><h3>Yarışı izle</h3><p>Yarışlar her gün belli saatte otomatik koşulur. Sollamaları, pit stoplarını ve hataları tur tur tekrar izle.</p></div>
+        <div class="card lp-step"><div class="lp-num">4</div><h3>Büyü ve şampiyon ol</h3><p>Ödül parasıyla aracını geliştir, pilotlarını eğit, transfer yap. Ligini kazan, dünya turnuvasına katıl.</p></div>
+      </div>
+
+      <div class="card lp-final">
+        <div><h2>Pit duvarı seni bekliyor</h2><p class="muted">Kayıt ücretsiz, bir dakika sürer. Sadece e-posta ve şifre yeterli.</p></div>
+        <button id="lpSignup2" class="btn primary lp-big">Takımımı al 🏎️</button>
+      </div>
+    </section>
+
     <!-- GİRİŞ / KAYIT -->
     <section id="auth" class="screen hidden">
       <div class="card auth-card">
+        <button id="authBack" class="btn ghost small-btn auth-back">← Geri</button>
         <h1>Pit duvarına hoş geldin</h1>
         <p class="muted">Ülkenin liginde bir takım yönet. Her gün bir yarış, 25 yarışlık sezon, sonunda dünya finali.</p>
         <div class="tabs">
@@ -296,13 +353,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=0.14"></script>
-  <script src="shared/data.js?v=0.14"></script>
-  <script src="shared/engine.js?v=0.14"></script>
-  <script src="ui/i18n.js?v=0.14"></script>
-  <script src="ui/api.js?v=0.14"></script>
-  <script src="ui/strategy.js?v=0.14"></script>
-  <script src="ui/replay.js?v=0.14"></script>
-  <script src="online.js?v=0.14"></script>
+  <script src="config.js?v=0.15"></script>
+  <script src="shared/data.js?v=0.15"></script>
+  <script src="shared/engine.js?v=0.15"></script>
+  <script src="ui/i18n.js?v=0.15"></script>
+  <script src="ui/api.js?v=0.15"></script>
+  <script src="ui/strategy.js?v=0.15"></script>
+  <script src="ui/replay.js?v=0.15"></script>
+  <script src="online.js?v=0.15"></script>
 </body>
 </html>
