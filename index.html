@@ -4,7 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PitWall Manager</title>
-  <link rel="stylesheet" href="style.css?v=0.13">
+  <script>
+    /* Tema: kayıtlı seçim yoksa cihazın açık/koyu ayarı. Sayfa çizilmeden önce çalışır (yanıp sönmesin). */
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("pitwall_theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", t);
+      try { var c = localStorage.getItem("pitwall_team_color"); if (c) { var p = JSON.parse(c); document.documentElement.style.setProperty("--team", p[0]); document.documentElement.style.setProperty("--on-team", p[1]); } } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css?v=0.14">
+  <link rel="stylesheet" href="themes.css?v=0.14">
 </head>
 <body>
   <header class="topbar">
@@ -17,6 +31,7 @@
     </nav>
     <div class="top-right">
       <span id="topInfo" class="top-info"></span>
+      <button id="themeBtn" class="btn ghost small-btn"></button>
       <button id="langBtn" class="btn ghost small-btn" title="Dil / Language"></button>
       <button id="logoutBtn" class="btn ghost small-btn hidden">Çıkış</button>
     </div>
@@ -281,13 +296,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=0.13"></script>
-  <script src="shared/data.js?v=0.13"></script>
-  <script src="shared/engine.js?v=0.13"></script>
-  <script src="ui/i18n.js?v=0.13"></script>
-  <script src="ui/api.js?v=0.13"></script>
-  <script src="ui/strategy.js?v=0.13"></script>
-  <script src="ui/replay.js?v=0.13"></script>
-  <script src="online.js?v=0.13"></script>
+  <script src="config.js?v=0.14"></script>
+  <script src="shared/data.js?v=0.14"></script>
+  <script src="shared/engine.js?v=0.14"></script>
+  <script src="ui/i18n.js?v=0.14"></script>
+  <script src="ui/api.js?v=0.14"></script>
+  <script src="ui/strategy.js?v=0.14"></script>
+  <script src="ui/replay.js?v=0.14"></script>
+  <script src="online.js?v=0.14"></script>
 </body>
 </html>

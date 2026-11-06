@@ -58,6 +58,39 @@ $("#langBtn").textContent = PW_I18N.lang === "tr" ? "🌐 EN" : "🌐 TR";
 $("#langBtn").onclick = () => PW_I18N.setLang(PW_I18N.lang === "tr" ? "en" : "tr");
 PW_I18N.applyStatic();
 
+// Tema düğmesi: açık (Pit Şeridi) / koyu (Takım Boyası). Seçim bu cihazda saklanır.
+function paintThemeBtn() {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  $("#themeBtn").textContent = dark ? "☀️" : "🌙";
+  $("#themeBtn").title = dark ? T("Açık temaya geç") : T("Koyu temaya geç");
+}
+$("#themeBtn").onclick = () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem("pitwall_theme", next); } catch (e) {}
+  paintThemeBtn();
+};
+paintThemeBtn();
+
+// Koyu temada arayüz takım rengini alır. Çok koyu renkler okunur olsun diye açılır.
+function applyTeamColor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return;
+  let rgb = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16));
+  const lum = (c) => {
+    const f = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2];
+  };
+  const panel = lum([35, 38, 43]);
+  for (let i = 0; i < 12 && (lum(rgb) + 0.05) / (panel + 0.05) < 3; i++) rgb = rgb.map((v) => Math.round(v + (255 - v) * 0.15));
+  const col = "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
+  const on = lum(rgb) > 0.36 ? "#111111" : "#ffffff";
+  const root = document.documentElement.style;
+  root.setProperty("--team", col);
+  root.setProperty("--on-team", on);
+  try { localStorage.setItem("pitwall_team_color", JSON.stringify([col, on])); } catch (e) {}
+}
+
 async function boot() {
   show("loading");
   try {
@@ -74,6 +107,7 @@ async function enter() {
   const team = await api.myTeam();
   if (!team) { await showJoin(); return; }
   ME.team = team;
+  applyTeamColor(team.color);
   ME.league = team.leagues;
   if (!ME.flags) {
     try {

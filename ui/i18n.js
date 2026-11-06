@@ -18,7 +18,7 @@
     // Genel
     "PitWall Manager": "PitWall Manager", "PITWALL": "PITWALL", "MANAGER": "MANAGER",
     "🏠 Merkez": "🏠 Home", "🌍 Ligler": "🌍 Leagues", "🏆 Dünya": "🏆 World", "🔄 Pazar": "🔄 Market", "Pazar": "Market",
-    "Çıkış": "Log out", "Yükleniyor…": "Loading…", "Bekle…": "Please wait…", "Sil": "Delete", "Vazgeç": "Cancel",
+    "Çıkış": "Log out", "Açık temaya geç": "Switch to light theme", "Koyu temaya geç": "Switch to dark theme", "Yükleniyor…": "Loading…", "Bekle…": "Please wait…", "Sil": "Delete", "Vazgeç": "Cancel",
     "← Geri": "← Back", "← Merkez": "← Home", "← Merkeze dön": "← Back to home", "Merkeze dön →": "Back to home →",
     "oyuncu": "player", "bot": "bot", "Bot takım": "Bot team", "Menajer": "Manager",
     "Yüksek": "High", "Orta": "Medium", "Düşük": "Low", "Kolay": "Easy", "Normal": "Normal", "Çok zor": "Very hard",

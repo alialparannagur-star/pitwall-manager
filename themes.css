@@ -1,0 +1,115 @@
+/* ===== PitWall Manager — açık (Pit Şeridi) ve koyu (Takım Boyası) temalar =====
+   Tema <html data-theme="light|dark"> ile seçilir. Yazı tipleri index.html'deki <link> ile yüklenir. */
+
+/* ---------- Ortak: yazı tipleri, pist görseli, tema düğmesi ---------- */
+:root[data-theme] {
+  --font-body: "Twemoji Country Flags", "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Big Shoulders Display", "Barlow", system-ui, sans-serif;
+  --team: #E5484D; --on-team: #fff;
+}
+[data-theme] body { font-size: 15px; }
+[data-theme] .logo { font-family: var(--font-display); font-weight: 900; font-style: normal; font-size: 26px; letter-spacing: .02em; }
+[data-theme] h1, [data-theme] h2 { font-weight: 800; letter-spacing: .01em; font-size: 28px; line-height: 1.05; }
+[data-theme] h3, [data-theme] .label { text-transform: none; letter-spacing: .01em; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--muted); }
+[data-theme] .btn { font-family: var(--font-display); font-weight: 800; font-size: 17px; letter-spacing: .02em; border-radius: 6px; }
+[data-theme] .small-btn { font-size: 15px; }
+[data-theme] .board th { text-transform: none; font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+[data-theme] .nav-btn { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+[data-theme] .money { font-family: var(--font-display); font-weight: 900; font-size: 34px; }
+[data-theme] .countdown { font-family: var(--font-display); font-weight: 800; font-size: 26px; }
+[data-theme] .board .pos, [data-theme] table.mini td:first-child,
+[data-theme] .dp-pos, [data-theme] .race-title, [data-theme] .overall span, [data-theme] .hero-stats span { font-family: var(--font-display); font-weight: 900; }
+[data-theme] .board .pos { font-size: 17px; }
+[data-theme] .card { border-radius: var(--radius); background: color-mix(in srgb, var(--panel) var(--card-op), transparent);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+
+/* Arka planda belli belirsiz duran kuşbakışı viraj */
+[data-theme] body::before {
+  content: ""; position: fixed; right: 0; bottom: 0; z-index: 0; pointer-events: none;
+  width: min(1000px, 85vw); height: min(800px, 68vw);
+  background: var(--track-art) right bottom / cover no-repeat;
+  opacity: var(--track-op);
+  -webkit-mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000 30%, transparent 78%);
+}
+[data-theme] .topbar, [data-theme] main, [data-theme] .toast, [data-theme] .modal { position: relative; z-index: 1; }
+[data-theme] .toast { position: fixed; z-index: 50; }
+[data-theme] .modal { position: fixed; z-index: 40; }
+
+#themeBtn { min-width: 42px; }
+
+/* ---------- AÇIK: Pit Şeridi — beton, yüksek görünürlük sarısı, kırmızı-beyaz kerb ---------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #E7EAEC; --panel: #FFFFFF; --panel2: #F1F3F5; --line: #D2D7DB; --text: #15181B; --muted: #59646D;
+  --accent: #FFD100; --on-accent: #15181B; --accent-soft: #FFF3B8; --me-bg: #FFF7D1; --rowline: #E6E9EC;
+  --good: #11833C; --good-text: #11833C; --good-line: #8FD3A7; --good-bg: #E4F4EA;
+  --gold: #A87900; --gold-bg: #FFF4CC; --on-gold: #15181B; --warn: #B85E00; --bad: #D3212C; --bad-soft: #B21C25; --bad-bg: #FDE9EA;
+  --link: #0A5FB4; --info: #0A5FB4; --topbar: #15181B; --silver: #8A949C; --marker: #15181B; --tyre-h: #A2ABB2;
+  --radius: 6px;
+  --track-art: url("art/corner-day.svg"); --track-op: .42; --card-op: 90%;
+}
+[data-theme="light"] .topbar { background: var(--topbar); color: #fff; border-bottom: 0; }
+[data-theme="light"] .topbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 7px;
+  background: repeating-linear-gradient(90deg, #D3212C 0 22px, #fff 22px 44px); }
+[data-theme="light"] .topbar .top-info { color: #B9C1C7; }
+[data-theme="light"] .topbar .btn.ghost, [data-theme="light"] .nav-btn { color: #E7EAEC; }
+[data-theme="light"] .nav-btn:hover { background: #2A2F34; color: #fff; }
+[data-theme="light"] .logo { color: #fff; }
+[data-theme="light"] .logo span { color: var(--accent); }
+[data-theme="light"] main { padding-top: 28px; }
+[data-theme="light"] .btn.primary { box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+[data-theme="light"] .btn.ghost { background: transparent; }
+[data-theme="light"] .chip.active { background: var(--accent-soft); border-color: #D9B100; }
+[data-theme="light"] .board tr.player td, [data-theme="light"] tr.me td { background: var(--me-bg); }
+[data-theme="light"] .board tr.player td:first-child, [data-theme="light"] tr.me td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
+[data-theme="light"] .countdown { color: var(--text); }
+[data-theme="light"] .toast { background: var(--text); color: #fff; border-color: var(--text); }
+[data-theme="light"] .tyre { box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
+[data-theme="light"] .statbar { background: #DFE3E6; }
+[data-theme="light"] .statbar .fill { background: var(--text); }
+[data-theme="light"] .world-tag { background: var(--text); color: var(--accent); }
+[data-theme="light"] .modal { background: rgba(21,24,27,.55); }
+
+/* ---------- KOYU: Takım Boyası — arayüz oyuncunun takım rengini alır ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1A1C20; --panel: #23262B; --panel2: #2B2F35; --line: #393E45; --text: #F1F1EE; --muted: #9AA0A7;
+  --accent: var(--team); --on-accent: var(--on-team); --accent-soft: color-mix(in srgb, var(--team) 22%, #23262B);
+  --me-bg: color-mix(in srgb, var(--team) 16%, #23262B); --rowline: #30343A;
+  --gold: #F2C230; --topbar: #121417; --marker: #F1F1EE;
+  --radius: 8px;
+  --track-art: url("art/corner-night.svg"); --track-op: .6; --card-op: 88%;
+}
+[data-theme="dark"] .topbar { border-bottom: 0; background: var(--topbar); }
+/* Alt kenarda takım renginde iki şerit (araç boyası gibi) */
+[data-theme="dark"] .topbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; height: 10px;
+  background: linear-gradient(to bottom, var(--team) 0 5px, transparent 5px 7px, var(--team) 7px 9px, transparent 9px); }
+[data-theme="dark"] .logo span { color: var(--team); }
+[data-theme="dark"] main { padding-top: 30px; }
+/* Sıra numaraları: yarış arabası numara plakası */
+[data-theme="dark"] .board .pos { padding: 4px 0; }
+[data-theme="dark"] .board tr td.pos { color: #111; text-align: center; background-color: transparent;
+  background-image: radial-gradient(ellipse 15px 13px at 50% 50%, #F1F1EE 98%, transparent 100%); }
+[data-theme="dark"] .board tr.player td.pos { background-image: radial-gradient(ellipse 15px 13px at 50% 50%, var(--team) 98%, transparent 100%); color: var(--on-team); }
+[data-theme="dark"] .board tr.player td, [data-theme="dark"] tr.me td { background-color: var(--me-bg); }
+[data-theme="dark"] .money { color: var(--text); }
+[data-theme="dark"] .countdown { color: var(--team); }
+[data-theme="dark"] .statbar .fill { background: var(--team); }
+[data-theme="dark"] .driver-panel { border-left-width: 8px; }
+
+@media (max-width: 700px) {
+  [data-theme] .logo { font-size: 19px; }
+  .topbar .small-btn { padding: 5px 8px; font-size: 14px; }
+  [data-theme] h1, [data-theme] h2 { font-size: 24px; }
+  [data-theme] .money { font-size: 28px; }
+  [data-theme] body::before { width: 100vw; height: 80vw; }
+  /* Telefonda üst bar iki satır: logo + düğmeler, altında kaydırılabilir menü */
+  .topbar { flex-wrap: wrap; padding: 10px 14px; row-gap: 6px; }
+  .topbar .top-info { display: none; }
+  .top-right { gap: 6px; }
+  .nav { order: 3; width: 100%; margin-left: 0 !important; display: flex; overflow-x: auto; gap: 4px; }
+  .nav.hidden { display: none; }
+  .nav-btn { flex: 0 0 auto; padding: 6px 10px; }
+  main { padding-left: 12px; padding-right: 12px; }
+}
