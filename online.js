@@ -95,7 +95,18 @@ async function boot() {
   show("loading");
   try {
     ME.user = await api.getUser();
-    if (!ME.user) { showAuth(); return; }
+    // Şifre sıfırlama bağlantısıyla gelindi: önce yeni şifre
+    if (ME.user && api.isRecovery()) { show("newpass"); return; }
+    if (!ME.user) {
+      showAuth();
+      const le = api.linkError();
+      if (le) {
+        openAuth("login");
+        $("#authMsg").className = "form-msg bad";
+        $("#authMsg").textContent = le === "expired" ? T("Bu bağlantının süresi dolmuş ya da daha önce kullanılmış. Yeniden iste.") : T("Bağlantı geçersiz. Yeniden iste.");
+      }
+      return;
+    }
     await enter();
   } catch (e) {
     $("#loading").innerHTML = `<div class="card narrow center"><p class="bad-text">${esc(e.message)}</p><button class="btn" onclick="location.reload()">Tekrar dene</button></div>`;
@@ -153,6 +164,8 @@ function setAuthMode(mode) {
   $("#authSubmit").textContent = T(mode === "login" ? "Giriş yap" : "Kayıt ol");
   $("#authPass").autocomplete = mode === "login" ? "current-password" : "new-password";
   $("#authMsg").textContent = "";
+  $("#forgotLink").classList.toggle("hidden", mode !== "login");
+  $("#resendBtn").classList.add("hidden");
 }
 document.querySelectorAll("[data-authmode]").forEach((b) => (b.onclick = () => setAuthMode(b.dataset.authmode)));
 
@@ -169,7 +182,7 @@ $("#authForm").onsubmit = async (ev) => {
         const r = await api.signUp(email, pass);
         if (r.needsConfirm) {
           msg.className = "form-msg ok";
-          msg.textContent = T("Kayıt alındı! E-postana gelen bağlantıyla hesabını onayla, sonra giriş yap.");
+          msg.textContent = T("Kayıt alındı! E-postana gelen bağlantıya tıklayarak hesabını onayla. Bağlantı seni doğrudan oyuna getirecek. E-posta gelmezse spam klasörüne bak.");
           return;
         }
       } else {
@@ -181,7 +194,53 @@ $("#authForm").onsubmit = async (ev) => {
   } catch (e) {
     msg.className = "form-msg bad";
     msg.textContent = e.message;
+    // Onaylanmamış hesap: onay e-postasını tekrar gönderme seçeneği
+    if (e.message === T("E-postanı henüz onaylamadın. Gelen kutunu kontrol et.")) $("#resendBtn").classList.remove("hidden");
   }
+};
+
+$("#resendBtn").onclick = async () => {
+  const msg = $("#authMsg");
+  try {
+    await busy($("#resendBtn"), () => api.resendConfirm($("#authEmail").value.trim()));
+    msg.className = "form-msg ok";
+    msg.textContent = T("Onay e-postası tekrar gönderildi. Spam klasörüne de bak.");
+    $("#resendBtn").classList.add("hidden");
+  } catch (e) { msg.className = "form-msg bad"; msg.textContent = e.message; }
+};
+
+// Şifremi unuttum
+$("#forgotLink").onclick = () => {
+  $("#forgotEmail").value = $("#authEmail").value.trim();
+  $("#forgotMsg").textContent = "";
+  show("forgot");
+};
+$("#forgotBack").onclick = () => openAuth("login");
+$("#forgotForm").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const msg = $("#forgotMsg");
+  msg.className = "form-msg"; msg.textContent = "";
+  try {
+    await busy($("#forgotSubmit"), () => api.resetPassword($("#forgotEmail").value.trim()));
+    msg.className = "form-msg ok";
+    msg.textContent = T("Bu adresle bir hesap varsa sıfırlama bağlantısı gönderildi. Gelen kutunu ve spam klasörünü kontrol et.");
+  } catch (e) { msg.className = "form-msg bad"; msg.textContent = e.message; }
+};
+
+// Yeni şifre (sıfırlama bağlantısından gelindiğinde)
+$("#newpassForm").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const msg = $("#newpassMsg");
+  msg.className = "form-msg"; msg.textContent = "";
+  if ($("#newpass1").value !== $("#newpass2").value) {
+    msg.className = "form-msg bad"; msg.textContent = T("İki şifre aynı değil."); return;
+  }
+  try {
+    await busy($("#newpassSubmit"), () => api.updatePassword($("#newpass1").value));
+    toast(T("Şifren değişti."));
+    ME.user = await api.getUser();
+    await enter();
+  } catch (e) { msg.className = "form-msg bad"; msg.textContent = e.message; }
 };
 
 $("#logoutBtn").onclick = async () => {

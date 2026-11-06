@@ -3,7 +3,14 @@
    Oyunun Supabase ile konuştuğu her şey bu dosyada.
    ========================================================= */
 (function () {
+  // E-postadaki bağlantılardan dönüşte adresin sonunda bilgi olur (#type=recovery, #error=...).
+  // Supabase bunu okuyup sildiği için önce kendimiz bakıyoruz.
+  const HASH = location.hash || "";
+  let recovery = /type=recovery/.test(HASH);
+  const linkError = /error_code=otp_expired/.test(HASH) ? "expired" : /[#&]error=/.test(HASH) ? "invalid" : null;
+  const SITE = location.href.split("#")[0].split("?")[0];
   const db = supabase.createClient(PW_CONFIG.SUPABASE_URL, PW_CONFIG.SUPABASE_KEY);
+  db.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") recovery = true; });
 
   // Supabase'in İngilizce hata mesajlarını Türkçeye çevir
   const TR = [
@@ -14,7 +21,10 @@
     [/Unable to validate email|invalid format/i, "Geçerli bir e-posta adresi yaz."],
     [/profiles_username_key/i, "Bu kullanıcı adı alınmış, başka bir tane dene."],
     [/profiles_username_check/i, "Kullanıcı adı 3-20 karakter olmalı."],
-    [/rate limit/i, "Çok fazla deneme yapıldı, biraz bekleyip tekrar dene."],
+    [/rate limit|security purposes|only request this after/i, "Çok fazla deneme yapıldı, biraz bekleyip tekrar dene."],
+    [/should be different from the old/i, "Yeni şifre eskisiyle aynı olamaz."],
+    [/Auth session missing/i, "Bağlantının süresi dolmuş. Şifre sıfırlamayı yeniden iste."],
+    [/Error sending|sending (confirmation|recovery) email/i, "E-posta gönderilemedi. Biraz sonra tekrar dene."],
     [/Yeterli gelişim puanın yok/i, "Yeterli gelişim puanın yok."],
     [/transfer hakkını doldurdun/i, "Bu sezon transfer hakkını doldurdun (en fazla 4)."],
     [/oyuncunun takımında/i, "Bu pilot bir oyuncunun takımında. Oyuncular arası transfer yakında!"],
@@ -34,8 +44,10 @@
       const { data } = await db.auth.getSession();
       return data.session ? data.session.user : null;
     },
+    isRecovery() { return recovery; },
+    linkError() { return linkError; },
     async signUp(email, password) {
-      const r = await db.auth.signUp({ email, password });
+      const r = await db.auth.signUp({ email, password, options: { emailRedirectTo: SITE } });
       if (r.error) fail(r.error);
       return { needsConfirm: !r.data.session };
     },
@@ -44,6 +56,19 @@
       if (r.error) fail(r.error);
     },
     async signOut() { await db.auth.signOut(); },
+    async resetPassword(email) {
+      const r = await db.auth.resetPasswordForEmail(email, { redirectTo: SITE });
+      if (r.error) fail(r.error);
+    },
+    async updatePassword(password) {
+      const r = await db.auth.updateUser({ password });
+      if (r.error) fail(r.error);
+      recovery = false;
+    },
+    async resendConfirm(email) {
+      const r = await db.auth.resend({ type: "signup", email, options: { emailRedirectTo: SITE } });
+      if (r.error) fail(r.error);
+    },
 
     // --- Oyun verileri ---
     async countries() {
