@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gizlilik ve Aydınlatma Metni · PitWall Manager</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <meta name="theme-color" content="#15181B">
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("pitwall_theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css?v=0.23">
+  <link rel="stylesheet" href="themes.css?v=0.23">
+  <link rel="stylesheet" href="legal.css?v=0.23">
+  <script src="legal-config.js?v=0.23"></script>
+  <script src="legal.js?v=0.23"></script>
+</head>
+<body data-title-tr="Gizlilik ve Aydınlatma Metni" data-title-en="Privacy Notice">
+  <header class="topbar">
+    <a class="logo" href="./">PITWALL <span>MANAGER</span></a>
+    <div class="top-right">
+      <button id="langSwitch" class="btn ghost small-btn">🌐 English</button>
+      <a class="btn ghost small-btn" href="./"><span data-lang="tr">← Oyuna dön</span><span data-lang="en" hidden>← Back to the game</span></a>
+    </div>
+  </header>
+
+  <main class="legal">
+    <!-- ====================== TÜRKÇE ====================== -->
+    <article data-lang="tr" class="card">
+      <h1>Gizlilik ve Kişisel Verilerin Korunması Aydınlatma Metni</h1>
+      <p class="muted">Son güncelleme: <span data-legal="updated"></span></p>
+
+      <p>Bu metin, PitWall Manager çevrimiçi oyununu ("<b>Oyun</b>") kullanırken kişisel verilerinin nasıl işlendiğini
+        6698 sayılı Kişisel Verilerin Korunması Kanunu'nun ("<b>KVKK</b>") 10. maddesi ve Aydınlatma Yükümlülüğünün
+        Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ uyarınca açıklar. Avrupa Ekonomik Alanı'ndan
+        oyuna katılan oyuncular için aynı bilgiler Genel Veri Koruma Tüzüğü (GDPR) 13. maddesi kapsamında da verilmektedir.</p>
+      <p>Bu metin bir bilgilendirmedir; onay vermeni gerektirmez. Oyun, verilerini açık rızana dayanarak değil,
+        aşağıda belirtilen hukuki sebeplere dayanarak işler.</p>
+
+      <h2>1. Veri sorumlusu</h2>
+      <p><b data-legal="owner"></b><br>
+        Adres: <span data-legal="address"></span><br>
+        E-posta: <a data-legal="email"></a></p>
+      <p>Oyun ticari olmayan, ücretsiz bir hobi projesidir. Herhangi bir otomobil yarışı serisi, takımı ya da markasıyla bağlantısı yoktur.</p>
+
+      <h2>2. Hangi verileri işliyoruz?</h2>
+      <table class="legal-table">
+        <tr><th>Veri</th><th>Nereden gelir</th><th>Neden</th></tr>
+        <tr><td><b>Kimlik ve hesap:</b> e-posta adresi, şifre (yalnızca şifrelenmiş/özetlenmiş hâli saklanır, kimse okuyamaz), kullanıcı adı, seçtiğin ülke</td>
+          <td>Kayıt formu</td><td>Hesabını oluşturmak, giriş yapmanı sağlamak, seni doğru ülke ligine yerleştirmek</td></tr>
+        <tr><td><b>Oyun verileri:</b> takımın, pilotların, stratejilerin, araç geliştirmelerin, transfer teklifleri, sponsor seçimin, yarış sonuçların, kupaların</td>
+          <td>Oyun içindeki işlemlerin</td><td>Oyunu oynatmak, yarışları koşturmak, sıralamaları ve tarihçeyi göstermek</td></tr>
+        <tr><td><b>Yazışmalar:</b> lig sohbetine yazdığın mesajlar; geri bildirim kutusuna yazdıkların ve bununla birlikte kaydedilen ekran, tarayıcı/cihaz bilgisi, ekran boyutu, dil ve tema</td>
+          <td>Senin gönderdiğin mesajlar</td><td>Ligdeki oyuncularla iletişim; hata bildirimlerini incelemek ve oyunu geliştirmek</td></tr>
+        <tr><td><b>İşlem güvenliği:</b> IP adresi, giriş zamanları, tarayıcı bilgisi, oturum anahtarı</td>
+          <td>Hizmet sağlayıcıların sunucu kayıtları, tarayıcının</td><td>Hesap güvenliği, kötüye kullanımın ve saldırıların önlenmesi, hataların giderilmesi</td></tr>
+      </table>
+      <p>Oyun <b>özel nitelikli kişisel veri</b> (sağlık, din, etnik köken vb.) istemez; lütfen sohbet ve geri bildirimlerde bu tür bilgileri paylaşma.
+        Oyunda reklam, pazarlama e-postası, kişi profillemesi ya da ödeme yoktur. Gerçek adını istemiyoruz; kullanıcı adın bir takma ad olabilir.</p>
+
+      <h2>3. Hukuki sebepler (KVKK m.5)</h2>
+      <ul>
+        <li><b>Sözleşmenin kurulması ve ifası</b> (m.5/2-c): hesap, oyun verileri, sohbet, hesap onay ve şifre sıfırlama e-postaları. Bu veriler olmadan oyunu sunamayız.</li>
+        <li><b>Meşru menfaat</b> (m.5/2-f): işlem güvenliği kayıtları, kötüye kullanımın önlenmesi, geri bildirimlerin incelenmesi.</li>
+        <li><b>Hukuki yükümlülük</b> (m.5/2-ç) ve <b>bir hakkın tesisi, kullanılması veya korunması</b> (m.5/2-e): resmî makamların talepleri ve olası uyuşmazlıklar.</li>
+      </ul>
+
+      <h2>4. Verileri kimlere aktarıyoruz?</h2>
+      <p>Verilerini satmayız, reklam için kimseyle paylaşmayız. Oyunun çalışması için aşağıdaki hizmet sağlayıcıları
+        <b>veri işleyen</b> olarak kullanılır:</p>
+      <table class="legal-table">
+        <tr><th>Hizmet sağlayıcı</th><th>Ne için</th><th>Konum</th></tr>
+        <tr><td>Supabase, Inc.</td><td>Veritabanı, kullanıcı girişi, yarış sunucusu</td><td>ABD şirketi; veriler <span data-legal="dbRegion"></span> bölgesindeki sunucularda</td></tr>
+        <tr><td>GitHub, Inc. (GitHub Pages)</td><td>Oyun sayfalarının yayınlanması (IP adresini görür)</td><td>ABD</td></tr>
+        <tr><td>Sendinblue SAS (Brevo)</td><td>Hesap onay ve şifre sıfırlama e-postalarının gönderimi (e-posta adresini görür)</td><td>Fransa / AB</td></tr>
+        <tr><td>Google LLC (Google Fonts)</td><td>Yazı tiplerinin yüklenmesi (IP adresini görür)</td><td>ABD</td></tr>
+        <tr><td>jsDelivr (Prospect One)</td><td>Program kütüphanesi ve bayrak yazı tipinin yüklenmesi (IP adresini görür)</td><td>Dünya geneli içerik dağıtım ağı</td></tr>
+      </table>
+      <p>Ayrıca kullanıcı adın, takımın, yarış sonuçların ve kupaların oyunun doğası gereği <b>diğer oyunculara görünür</b>.
+        Lig sohbetindeki mesajlarını yalnızca aynı ligdeki oyuncular görür. Kanunen yetkili kamu kurumlarının talebi hâlinde
+        bilgiler ilgili mevzuat çerçevesinde paylaşılabilir.</p>
+
+      <h2>5. Yurt dışına aktarım</h2>
+      <p>Yukarıdaki hizmet sağlayıcıların sunucuları Türkiye dışında bulunduğundan, kişisel verilerin yurt dışına aktarılmaktadır.
+        Bu aktarım KVKK'nın 9. maddesi kapsamında <span class="todo">[AVUKATINLA BELİRLE: dayanılan güvence — ör. Kişisel Verileri Koruma Kurulu'nca ilan edilen
+        standart sözleşme ve Kurum'a bildirimi]</span> çerçevesinde gerçekleştirilir.</p>
+
+      <h2>6. Verileri nasıl topluyoruz?</h2>
+      <p>Kayıt formu, oyun ekranları, sohbet ve geri bildirim kutusu aracılığıyla, elektronik ortamda ve otomatik yollarla toplanır.</p>
+
+      <h2>7. Ne kadar süre saklıyoruz?</h2>
+      <ul>
+        <li><b>Hesap bilgileri:</b> hesabın açık olduğu sürece. Hesabını silince e-posta adresin, şifren ve profilin hemen silinir.</li>
+        <li><b>Sohbet mesajları:</b> sen silene ya da hesabını silene kadar.</li>
+        <li><b>Geri bildirimler:</b> oyun geliştirildiği sürece; hesabını silince seninle bağlantısı koparılır (kimliksizleştirilir).</li>
+        <li><b>Oyun geçmişi:</b> takım adı, yarış sonuçları ve kupalar oyunun tarihçesinin parçasıdır. Hesabını silince takımın bir bota devredilir ve bu kayıtların seninle bağlantısı kaldırılır.</li>
+        <li><b>Sunucu ve güvenlik kayıtları:</b> hizmet sağlayıcıların kendi kısa saklama sürelerine göre.</li>
+      </ul>
+      <p>Saklama süresi dolan veriler silinir, yok edilir ya da anonim hâle getirilir.</p>
+
+      <h2>8. Tarayıcında sakladığımız bilgiler (çerezler)</h2>
+      <p>Oyun reklam ya da izleme çerezi kullanmaz. Tarayıcının yerel deposunda yalnızca oyunun çalışması için zorunlu olan bilgiler tutulur:
+        oturum anahtarı (giriş yapmış kalman için), dil, açık/koyu tema, takım rengi ve kapattığın bilgilendirme kartları. Bunlar tarayıcı ayarlarından silinebilir;
+        silersen yeniden giriş yapman gerekir.</p>
+
+      <h2>9. Haklarım neler? (KVKK m.11)</h2>
+      <p>Veri sorumlusuna başvurarak şu haklarını kullanabilirsin:</p>
+      <ul>
+        <li>kişisel verilerinin işlenip işlenmediğini öğrenmek, işlenmişse bilgi talep etmek,</li>
+        <li>işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenmek,</li>
+        <li>yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilmek,</li>
+        <li>eksik veya yanlış işlenmişse düzeltilmesini istemek,</li>
+        <li>KVKK m.7'deki şartlar çerçevesinde silinmesini veya yok edilmesini istemek,</li>
+        <li>düzeltme ve silme işlemlerinin, verilerin aktarıldığı üçüncü kişilere bildirilmesini istemek,</li>
+        <li>münhasıran otomatik sistemlerle analiz edilmesi sonucu aleyhine bir sonuç çıkmasına itiraz etmek,</li>
+        <li>kanuna aykırı işleme sebebiyle zarara uğraman hâlinde zararın giderilmesini talep etmek.</li>
+      </ul>
+      <p><b>Hesabını ve verilerini kendin de silebilirsin:</b> oyuna giriş yaptıktan sonra sayfanın altındaki "Hesabımı sil" bağlantısını kullan.</p>
+      <p>Başvurularını <a data-legal="email"></a> adresine, kayıtlı e-posta adresinden yazarak iletebilirsin. Başvurular en geç
+        <b>30 gün</b> içinde ücretsiz olarak sonuçlandırılır. Başvurunun reddedilmesi, cevabın yetersiz bulunması veya süresinde cevap verilmemesi
+        hâlinde Kişisel Verileri Koruma Kurulu'na şikâyette bulunabilirsin (KVKK m.14).</p>
+
+      <h2>10. Güvenlik</h2>
+      <p>Bağlantılar şifrelidir (HTTPS). Şifreler okunamaz biçimde saklanır. Veritabanında her oyuncu yalnızca kendisine ait verileri değiştirebilir;
+        bu kurallar sunucu tarafında uygulanır. Yine de internet üzerinden hiçbir sistem %100 güvenli değildir; şifreni başka sitelerde kullanmamanı öneririz.</p>
+
+      <h2>11. Çocuklar</h2>
+      <p>Oyun <b>13 yaşından küçükler</b> için değildir. 18 yaşından küçüksen oyuna velinin bilgisi ve izniyle katıl.
+        13 yaşından küçük birinin kayıt olduğunu fark edersek hesabı sileriz.</p>
+
+      <h2>12. Değişiklikler</h2>
+      <p>Bu metni güncelleyebiliriz. Güncel hâli her zaman bu sayfada yer alır; önemli değişiklikleri oyun içinde duyururuz.</p>
+    </article>
+
+    <!-- ====================== ENGLISH ====================== -->
+    <article data-lang="en" class="card" hidden>
+      <h1>Privacy Notice</h1>
+      <p class="muted">Last updated: <span data-legal="updated"></span></p>
+
+      <p>This notice explains how your personal data is processed when you use the online game PitWall Manager (the "<b>Game</b>"),
+        in accordance with Article 10 of the Turkish Personal Data Protection Law No. 6698 ("<b>KVKK</b>") and, for players in the
+        European Economic Area, Article 13 of the General Data Protection Regulation (GDPR). The Turkish version prevails in case of any discrepancy.</p>
+      <p>This is information only; it does not ask for your consent. The Game processes your data on the legal grounds listed below, not on consent.</p>
+
+      <h2>1. Data controller</h2>
+      <p><b data-legal="owner"></b><br>
+        Address: <span data-legal="address"></span><br>
+        Email: <a data-legal="email"></a></p>
+      <p>The Game is a free, non-commercial hobby project. It is not affiliated with any motor racing series, team or brand.</p>
+
+      <h2>2. What data do we process?</h2>
+      <table class="legal-table">
+        <tr><th>Data</th><th>Source</th><th>Purpose</th></tr>
+        <tr><td><b>Account:</b> email address, password (only a hashed form is stored; nobody can read it), username, the country you choose</td>
+          <td>Sign-up form</td><td>Creating your account, letting you log in, placing you in the right country league</td></tr>
+        <tr><td><b>Game data:</b> your team, drivers, strategies, car upgrades, transfer offers, sponsor choice, race results, trophies</td>
+          <td>Your actions in the game</td><td>Running the game and races, showing standings and history</td></tr>
+        <tr><td><b>Messages:</b> what you write in league chat; what you send through the feedback box, together with the screen, browser/device info, screen size, language and theme</td>
+          <td>Messages you send</td><td>Talking to players in your league; investigating bug reports and improving the game</td></tr>
+        <tr><td><b>Security:</b> IP address, login times, browser info, session token</td>
+          <td>Service providers' server logs, your browser</td><td>Account security, preventing abuse and attacks, fixing errors</td></tr>
+      </table>
+      <p>The Game does not ask for <b>special categories of data</b> (health, religion, ethnic origin, etc.); please do not share such information in chat or feedback.
+        There are no ads, marketing emails, profiling or payments. We do not ask for your real name; your username can be a nickname.</p>
+
+      <h2>3. Legal grounds</h2>
+      <ul>
+        <li><b>Performance of a contract</b> (KVKK Art. 5/2-c, GDPR Art. 6(1)(b)): account, game data, chat, account confirmation and password reset emails. We cannot provide the Game without them.</li>
+        <li><b>Legitimate interests</b> (KVKK Art. 5/2-f, GDPR Art. 6(1)(f)): security logs, abuse prevention, reviewing feedback.</li>
+        <li><b>Legal obligations</b> and <b>establishing, exercising or defending legal claims</b> (KVKK Art. 5/2-ç and 5/2-e, GDPR Art. 6(1)(c)).</li>
+      </ul>
+
+      <h2>4. Who receives the data?</h2>
+      <p>We do not sell your data or share it for advertising. The following service providers process data on our behalf so the Game can work:</p>
+      <table class="legal-table">
+        <tr><th>Provider</th><th>Purpose</th><th>Location</th></tr>
+        <tr><td>Supabase, Inc.</td><td>Database, login, race server</td><td>US company; data stored on servers in the <span data-legal="dbRegion"></span> region</td></tr>
+        <tr><td>GitHub, Inc. (GitHub Pages)</td><td>Hosting the game pages (sees your IP address)</td><td>USA</td></tr>
+        <tr><td>Sendinblue SAS (Brevo)</td><td>Sending account confirmation and password reset emails (sees your email address)</td><td>France / EU</td></tr>
+        <tr><td>Google LLC (Google Fonts)</td><td>Loading fonts (sees your IP address)</td><td>USA</td></tr>
+        <tr><td>jsDelivr (Prospect One)</td><td>Loading a program library and the flag font (sees your IP address)</td><td>Global content delivery network</td></tr>
+      </table>
+      <p>By the nature of the Game, your username, team, race results and trophies are <b>visible to other players</b>.
+        Your league chat messages are visible only to players in your league. Information may be disclosed to competent authorities where required by law.</p>
+
+      <h2>5. International transfers</h2>
+      <p>Because the providers above operate servers outside Türkiye, your personal data is transferred abroad. These transfers take place under
+        Article 9 of the KVKK on the basis of <span class="todo">[TO BE CONFIRMED WITH A LAWYER: the safeguard relied on, e.g. standard contracts announced by the Turkish Personal Data Protection Board and their notification]</span>.</p>
+
+      <h2>6. How long do we keep it?</h2>
+      <ul>
+        <li><b>Account data:</b> while your account exists. When you delete your account, your email, password and profile are deleted immediately.</li>
+        <li><b>Chat messages:</b> until you delete them or your account.</li>
+        <li><b>Feedback:</b> while the Game is being developed; when you delete your account it is de-identified.</li>
+        <li><b>Game history:</b> team name, race results and trophies are part of the Game's history. When you delete your account your team is handed over to a bot and these records are no longer linked to you.</li>
+        <li><b>Server and security logs:</b> according to the providers' own short retention periods.</li>
+      </ul>
+
+      <h2>7. Data stored in your browser (cookies)</h2>
+      <p>The Game uses no advertising or tracking cookies. Only data strictly necessary for the Game is kept in your browser's local storage:
+        the session token (to keep you logged in), language, light/dark theme, team colour and info cards you have closed. You can clear these in your browser settings;
+        you will then need to log in again.</p>
+
+      <h2>8. Your rights</h2>
+      <p>You have the right to: learn whether your data is processed and request information about it; learn the purpose of processing and whether it is used accordingly;
+        know the third parties it is transferred to in Türkiye or abroad; request correction of incomplete or inaccurate data; request erasure or destruction;
+        request that corrections and erasures be notified to recipients; object to a result against you arising solely from automated processing;
+        and claim compensation for damage caused by unlawful processing (KVKK Art. 11). Under the GDPR you also have the rights of access, rectification,
+        erasure, restriction, data portability and objection, and the right to complain to your local data protection authority.</p>
+      <p><b>You can delete your account and data yourself:</b> after logging in, use the "Delete my account" link at the bottom of the page.</p>
+      <p>Send other requests to <a data-legal="email"></a> from your registered email address. We answer free of charge within <b>30 days</b>.
+        You may also complain to the Turkish Personal Data Protection Board (KVKK Art. 14).</p>
+
+      <h2>9. Security</h2>
+      <p>Connections are encrypted (HTTPS). Passwords are stored in a non-readable form. In the database every player can change only their own data;
+        these rules are enforced on the server. No system on the internet is 100% secure, so please do not reuse your password on other sites.</p>
+
+      <h2>10. Children</h2>
+      <p>The Game is not intended for <b>children under 13</b>. If you are under 18, play with your parent's or guardian's knowledge and permission.
+        If we learn that a child under 13 has registered, we will delete the account.</p>
+
+      <h2>11. Changes</h2>
+      <p>We may update this notice. The current version is always on this page; we announce significant changes in the Game.</p>
+    </article>
+  </main>
+</body>
+</html>
