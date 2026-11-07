@@ -42,6 +42,7 @@
       laps: rep.laps.map((row) => row.map((c, i) => ({ i, t: c[0], c: c[1], a: c[2], w: c[3], p: c[4], d: c[5], l: c[6] }))),
       events: rep.events.map((e) => ({ lap: e[0], text: e[1], ids: e[2], kind: e[3], params: e[4] || null })),
       wx: rep.wx || null,
+      sc: rep.sc || null,
     };
   }
 
@@ -95,7 +96,7 @@
     const i = view.i, last = i >= lastIdx();
     const row = R.laps[i];
     $("#scrub").value = i;
-    $("#lapInfo").innerHTML = (i === 0 ? T("Başlangıç dizilişi") : last ? `<b>${T("Damalı bayrak!")}</b> 🏁` : `${T("Tur")} <b>${i}</b> / ${R.track.laps}`) + wxBadge(R.wx, i);
+    $("#lapInfo").innerHTML = (i === 0 ? T("Başlangıç dizilişi") : last ? `<b>${T("Damalı bayrak!")}</b> 🏁` : `${T("Tur")} <b>${i}</b> / ${R.track.laps}`) + wxBadge(R.wx, i) + (R.sc && R.sc[i] ? ` <span class="sc-badge">🚨 ${T("Güvenlik aracı")}</span>` : "");
 
     const order = last
       ? R.results.map((r) => row[r.i])

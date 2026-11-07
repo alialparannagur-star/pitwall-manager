@@ -94,6 +94,34 @@
     "Islak": "Wet",
     "Çok ıslak": "Very wet",
     "Yağmur tepkisi": "Rain reaction",
+    "Oyunu telefonuna ekle": "Add the game to your phone",
+    "Ana ekranında simgesiyle, tarayıcı çubuğu olmadan uygulama gibi açılsın.": "Open it from your home screen like an app, without the browser bar.",
+    "📲 Ekle": "📲 Add",
+    "Kapat": "Close",
+    "Safari'de alttaki Paylaş düğmesine (⬆️) dokun, sonra \"Ana Ekrana Ekle\"yi seç.": "In Safari, tap the Share button (⬆️) at the bottom, then choose \"Add to Home Screen\".",
+    "Tarayıcının menüsünü (⋮) aç ve \"Ana ekrana ekle\" ya da \"Uygulamayı yükle\"yi seç.": "Open the browser menu (⋮) and choose \"Add to Home screen\" or \"Install app\".",
+    "Güvenlik aracı çıkarsa ucuz pit fırsatını kullan (yakındaki pit stopu öne çeker)": "If the safety car comes out, take the cheap pit stop (brings the next stop forward)",
+    "Güvenlik aracı": "Safety car",
+    "Güvenli": "Safe",
+    "Riskli": "Risky",
+    "Her yarış sabit para. Sonuç ne olursa olsun.": "Fixed money every race, whatever the result.",
+    "Biraz sabit para, hedef tutarsa prim.": "Some fixed money, plus a bonus if you hit the target.",
+    "Sabit para yok. Hedef tutarsa büyük prim.": "No fixed money. A big bonus if you hit the target.",
+    "en iyi pilot yarışı kazanırsa": "if your best driver wins the race",
+    "en iyi pilot ilk {n} içinde bitirirse": "if your best driver finishes in the top {n}",
+    "Sponsor": "Sponsor",
+    "{x} / yarış": "{x} / race",
+    "Bu sezon: {r} yarış · {h} hedef tuttu · toplam {x}": "This season: {r} races · target hit {h} times · total {x}",
+    "Sponsor teklifleri": "Sponsor offers",
+    "Bu sezon için bir sponsor seç. Seçim sezon sonuna kadar geçerli. 3. yarışa kadar seçmezsen dengeli teklif otomatik kabul edilir.": "Choose a sponsor for this season. The deal lasts until the season ends. If you don't choose by race 3, the balanced offer is accepted automatically.",
+    "/ yarış": "/ race",
+    "Prim yok": "No bonus",
+    "Anlaş": "Sign",
+    "Sponsor anlaşması imzalandı! 🤝": "Sponsor deal signed! 🤝",
+    "sponsor": "sponsor",
+    "Bu sezon zaten bir sponsorla anlaştın.": "You already have a sponsor this season.",
+    "Takımın yok.": "You don't have a team.",
+    "Geçersiz teklif": "Invalid offer",
     "Çıkış": "Log out", "Açık temaya geç": "Switch to light theme", "Koyu temaya geç": "Switch to dark theme", "Yükleniyor…": "Loading…", "Bekle…": "Please wait…", "Sil": "Delete", "Vazgeç": "Cancel",
     "← Geri": "← Back", "← Merkez": "← Home", "← Merkeze dön": "← Back to home", "Merkeze dön →": "Back to home →",
     "oyuncu": "player", "bot": "bot", "Bot takım": "Bot team", "Menajer": "Manager",
@@ -366,13 +394,16 @@
       case "pit_slow": return `🐢 Slow pit stop for ${n(0)}! (+${sec}s)`;
       case "pit": {
         const c = p.tyre || ({ "Yumuşak": "S", "Orta": "M", "Sert": "H" }[(txt.match(/→ (\S+)$/) || [])[1]]);
-        return `🔧 ${n(0)} pits → ${tyre(c)}${p.wx ? " (weather)" : ""}`;
+        return `🔧 ${n(0)} pits → ${tyre(c)}${p.wx ? " (weather)" : p.sc ? " (safety car)" : ""}`;
       }
       case "overtake": return /liderliği/.test(txt) ? `👑 ${n(0)} takes the lead!` : `⚔️ ${n(0)} overtakes ${n(1)}`;
       case "lead": return `👑 ${n(0)} takes the lead!`;
       case "penalty": return `⚠️ ${n(0)}: +20s penalty for not using two tyre compounds`;
       case "crash": return `💥 ${n(0)} lost control on the wet track and is out!`;
       case "wet_start": return "🌧️ The race starts on a wet track";
+      case "crash_dry": return `💥 ${n(0)} hit the barrier and is out!`;
+      case "sc_out": return "🚨 Safety car deployed!";
+      case "sc_in": return "🟢 Safety car in this lap, racing resumes!";
       case "drizzle": return "🌦️ A light drizzle has started";
       case "rain_start": return "🌧️ It's raining!";
       case "rain_heavy": return "⛈️ The rain is getting heavier, the track is very wet";

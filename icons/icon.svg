@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs><clipPath id="c"><rect width="512" height="512"/></clipPath></defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="#15181B"/>
+    <!-- kerb şeridi -->
+    <g transform="translate(0 404)">
+      <rect width="512" height="58" fill="#fff"/>
+      <g fill="#D3212C">
+        <path d="M-20 58 L18 0 H64 L26 58Z"/><path d="M72 58 L110 0 H156 L118 58Z"/><path d="M164 58 L202 0 H248 L210 58Z"/>
+        <path d="M256 58 L294 0 H340 L302 58Z"/><path d="M348 58 L386 0 H432 L394 58Z"/><path d="M440 58 L478 0 H524 L486 58Z"/>
+      </g>
+    </g>
+    <!-- P harfi (italik, yarış numarası gibi) -->
+    <g transform="skewX(-12) translate(70 0)">
+      <path fill="#FFD100" fill-rule="evenodd" d="M150 70 H290 C360 70 400 112 400 178 C400 244 360 286 290 286 H226 V372 H150 Z M226 136 V220 H282 C310 220 324 204 324 178 C324 152 310 136 282 136 Z"/>
+    </g>
+    <!-- hız çizgileri -->
+    <g fill="#FFD100" opacity=".9">
+      <rect x="40" y="150" width="96" height="16" rx="8"/><rect x="62" y="196" width="74" height="16" rx="8"/><rect x="84" y="242" width="52" height="16" rx="8"/>
+    </g>
+  </g>
+</svg>

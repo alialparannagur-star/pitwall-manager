@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PitWall Manager</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#15181B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PitWall">
   <script>
     /* Tema: kayıtlı seçim yoksa cihazın açık/koyu ayarı. Sayfa çizilmeden önce çalışır (yanıp sönmesin). */
     (function () {
@@ -17,8 +26,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=0.18">
-  <link rel="stylesheet" href="themes.css?v=0.18">
+  <link rel="stylesheet" href="style.css?v=0.20">
+  <link rel="stylesheet" href="themes.css?v=0.20">
 </head>
 <body>
   <header class="topbar">
@@ -185,7 +194,19 @@
               <button id="goPilotsBtn" class="btn">👤 Pilotlar</button>
             </div>
           </div>
+          <div class="card hidden install-card" id="installCard">
+            <button class="install-x" id="installX" title="Kapat">×</button>
+            <div class="install-row">
+              <img src="icons/icon-192.png" alt="" width="52" height="52">
+              <div>
+                <b>Oyunu telefonuna ekle</b>
+                <div class="small muted" id="installHelp">Ana ekranında simgesiyle, tarayıcı çubuğu olmadan uygulama gibi açılsın.</div>
+              </div>
+              <button class="btn primary small-btn" id="installBtn">📲 Ekle</button>
+            </div>
+          </div>
           <div class="card hidden offers-card" id="offersCard"></div>
+          <div class="card hidden sponsor-card" id="sponsorCard"></div>
           <div class="card hidden news" id="newsCard"></div>
           <div class="card hidden" id="lastRaceCard">
             <div class="label">Son yarış</div>
@@ -406,13 +427,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=0.18"></script>
-  <script src="shared/data.js?v=0.18"></script>
-  <script src="shared/engine.js?v=0.18"></script>
-  <script src="ui/i18n.js?v=0.18"></script>
-  <script src="ui/api.js?v=0.18"></script>
-  <script src="ui/strategy.js?v=0.18"></script>
-  <script src="ui/replay.js?v=0.18"></script>
-  <script src="online.js?v=0.18"></script>
+  <script src="config.js?v=0.20"></script>
+  <script src="shared/data.js?v=0.20"></script>
+  <script src="shared/engine.js?v=0.20"></script>
+  <script src="ui/i18n.js?v=0.20"></script>
+  <script src="ui/api.js?v=0.20"></script>
+  <script src="ui/strategy.js?v=0.20"></script>
+  <script src="ui/replay.js?v=0.20"></script>
+  <script src="online.js?v=0.20"></script>
 </body>
 </html>

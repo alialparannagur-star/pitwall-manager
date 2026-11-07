@@ -139,7 +139,7 @@
     async raceSummary(raceId, teamId) {
       const [res, tr] = await Promise.all([
         db.from("race_results").select("driver_id, pos, points, dnf").eq("race_id", raceId).eq("team_id", teamId),
-        db.from("race_team_results").select("points, prize, salaries").eq("race_id", raceId).eq("team_id", teamId).maybeSingle(),
+        db.from("race_team_results").select("points, prize, salaries, sponsor").eq("race_id", raceId).eq("team_id", teamId).maybeSingle(),
       ]);
       return { results: must(res), team: must(tr) };
     },
@@ -204,6 +204,15 @@
     },
     async cancelOffer(offerId) {
       return must(await db.rpc("cancel_offer", { p_offer: offerId }));
+    },
+    async sponsorDeal(teamId, seasonId) {
+      return must(await db.from("sponsor_deals").select("*").eq("team_id", teamId).eq("season_id", seasonId).maybeSingle());
+    },
+    async sponsorOffers(teamId) {
+      return must(await db.rpc("sponsor_offers", { p_team: teamId })) || [];
+    },
+    async signSponsor(kind) {
+      must(await db.rpc("sign_sponsor", { p_kind: kind }));
     },
     async signDriver(targetId, outId) {
       return must(await db.rpc("sign_driver", { p_target: targetId, p_out: outId }));

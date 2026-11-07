@@ -304,7 +304,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
         acc += caps[i] / sum * track.laps;
         stops.push({ lap: Math.max(1, Math.min(track.laps - 1, Math.round(acc))), tyre: seq[i + 1] });
       }
-      const plan = { start: seq[0], stops, mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal" };
+      const plan = { start: seq[0], stops, mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal", scPit: true };
       const est = estimatePlan(track, car, plan, drv);
       if (est.maxWear <= 92) out.push({ plan, est, label: seq.join(" → ") });
     });
@@ -321,22 +321,24 @@ import { createClient } from "npm:@supabase/supabase-js@2";
     plan.stops.forEach((s) => { s.lap = Math.max(1, Math.min(track.laps - 1, s.lap + Math.round((rng() - 0.5) * 4))); });
     const q = rng();
     plan.wetCall = q < 0.25 ? "early" : q < 0.75 ? "normal" : "late";
+    plan.scPit = rng() < 0.8;
     return plan;
   }
 
   // Kullanıcıdan gelen planı güvenli hale getir (sunucu da bunu kullanır)
   function normalizePlan(plan, track) {
-    const p = Object.assign({ start: "M", stops: [], mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal" }, plan && typeof plan === "object" ? plan : {});
+    const p = Object.assign({ start: "M", stops: [], mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal", scPit: true }, plan && typeof plan === "object" ? plan : {});
     const dry = (x) => D.DRY.includes(x);
     p.stops = (Array.isArray(p.stops) ? p.stops : []).filter((s) => s && dry(s.tyre))
       .map((s) => ({ lap: Math.max(1, Math.min(track.laps - 1, Math.round(+s.lap || 1))), tyre: s.tyre }))
       .sort((a, b) => a.lap - b.lap).slice(0, 3);
     if (!dry(p.start)) p.start = "M";
     if (!D.WET_CALLS[p.wetCall]) p.wetCall = "normal";
+    p.scPit = p.scPit !== false;
     if (!D.MODES[p.mode]) p.mode = "normal";
     if (![75, 85, 95].includes(p.wearLimit)) p.wearLimit = 85;
     p.pushEnd = !!p.pushEnd;
-    return { start: p.start, stops: p.stops, mode: p.mode, pushEnd: p.pushEnd, wearLimit: p.wearLimit, wetCall: p.wetCall };
+    return { start: p.start, stops: p.stops, mode: p.mode, pushEnd: p.pushEnd, wearLimit: p.wearLimit, wetCall: p.wetCall, scPit: p.scPit };
   }
 
   /* ---------- YARIŞ SİMÜLASYONU ---------- */
@@ -374,10 +376,14 @@ import { createClient } from "npm:@supabase/supabase-js@2";
     if (W[0] >= 0.15) ev(0, `🌧️ Yarış ıslak pistte başlıyor`, [], "wet_start");
 
     const snap = (lap) => ({
-      lap, w: Math.round(W[lap] * 100),
+      lap, w: Math.round(W[lap] * 100), sc: scLapFlags[lap] ? 1 : 0,
       cars: cars.map((c) => ({ id: c.id, t: +c.total.toFixed(3), c: c.compound, a: c.tyreAge, w: Math.round(c.wear), p: c.pitThisLap ? 1 : 0, d: c.dnf ? 1 : 0, l: c.lastLap == null ? null : +c.lastLap.toFixed(3) })),
     });
+    const scLapFlags = [];
     const laps = [snap(0)];
+    // Güvenlik aracı durumu
+    let scLeft = 0, scLapNo = 0, scPending = false, restart = false;
+    const callSC = (prob) => { if (rng() < prob) scPending = true; };
 
     let heavySaid = false, drySaid = true;
     for (let lap = 1; lap <= track.laps; lap++) {
@@ -390,25 +396,34 @@ import { createClient } from "npm:@supabase/supabase-js@2";
       if (rNow === 0 && rPrev > 0) ev(lap, "🌤️ Yağmur durdu, pist kurumaya başlıyor", [], "rain_stop");
       if (!drySaid && rNow === 0 && w < 0.15 && W[lap - 1] >= 0.15) { drySaid = true; ev(lap, "☀️ Kuru bir çizgi oluştu", [], "dry_line"); }
       const order = cars.filter((c) => !c.dnf).sort((a, b) => a.total - b.total);
+      const sc = scLeft > 0;
+      if (sc) scLapNo++;
+      scLapFlags[lap] = sc;
 
       // a) Tur süreleri
       order.forEach((c, i) => {
         if (rng() < 0.0004 + (100 - c.car.reliability) * 0.000016) {
           c.dnf = true; c.pitThisLap = false;
           ev(lap, `💥 ${c.name} mekanik arıza nedeniyle yarış dışı!`, [c.id], "dnf");
+          callSC(0.35);
           return;
         }
         // Islakta kaygan lastikle (ya da sadece ıslakta) kaza riski
         const slick = !D.COMPOUNDS[c.compound].wet;
         const crashP = (slick ? Math.max(0, w - 0.28) * 0.06 : 0) + w * 0.0012;
-        if (crashP > 0 && rng() < crashP * Math.max(0.5, 1 + (60 - c.a.consistency) / 80)) {
+        if (crashP > 0 && rng() < crashP * (sc ? 0.1 : 1) * Math.max(0.5, 1 + (60 - c.a.consistency) / 80)) {
           c.dnf = true; c.pitThisLap = false;
           ev(lap, `💥 ${c.name} ıslak pistte kontrolü kaybetti, yarış dışı!`, [c.id], "crash");
+          callSC(0.85);
           return;
         }
         if (c.plan.pushEnd && lapsLeft < 8 && c.wear < 65) c.mode = "push";
 
         let t = track.baseLap;
+        if (sc) {
+          // Güvenlik aracı arkasında herkes aynı yavaş tempoda gider
+          t = track.baseLap * 1.35 + lapsLeft * 0.03 + w * 4 + rng() * 0.3;
+        } else {
         t += (100 - c.perf) * 0.045;
         t += (100 - c.a.pace) * 0.012;                         // pilot hızı
         t += c.form;
@@ -417,13 +432,20 @@ import { createClient } from "npm:@supabase/supabase-js@2";
         t += lapsLeft * 0.03;                                   // yakıt ağırlığı
         t += (gauss(rng) * 0.22 * (1 + (100 - c.a.consistency) / 100) + (100 - c.a.consistency) * 0.006) * (1 + w * 0.8); // istikrarsızlık / şans
         if (lap > 1 && rng() < (100 - c.a.consistency) * 0.0004 * (1 + w * 4)) {      // sürüş hatası (ıslakta daha sık)
+          if (rng() < 0.015) {                                    // nadiren hata kazayla biter
+            c.dnf = true; c.pitThisLap = false;
+            ev(lap, `💥 ${c.name} bariyere çarptı, yarış dışı!`, [c.id], "crash_dry");
+            callSC(0.85);
+            return;
+          }
           const lost = 2 + rng() * 3;
           t += lost;
           ev(lap, `😬 ${c.name} hata yaptı, ${lost.toFixed(1)} sn kaybetti`, [c.id], "mistake", { sec: +lost.toFixed(1) });
         }
         if (lap === 1) t += 2 + i * 0.15 - (c.a.racecraft - 50) * 0.03; // kalkış turu (iyi yarışçı pozisyon kazanır)
+        }
 
-        c.wear = Math.min(100, c.wear + wearRate(track, c.car, c.compound, c.mode, c.a, w));
+        c.wear = Math.min(100, c.wear + wearRate(track, c.car, c.compound, c.mode, c.a, w) * (sc ? 0.3 : 1));
         c.tyreAge++;
 
         // Pit kararı: plana göre, ya da lastik güvenlik sınırını geçtiyse erken
@@ -444,6 +466,17 @@ import { createClient } from "npm:@supabase/supabase-js@2";
           pitTo = want; wxPit = true;
           if (!D.COMPOUNDS[want].wet) while (c.stops[c.stopIdx] && c.stops[c.stopIdx].lap <= lap + 6) c.stopIdx++;
         }
+        // Güvenlik aracı fırsatı: yakındaki planlı stopu öne çek ya da taze lastik al
+        if (!pitTo && sc && c.plan.scPit !== false && lapsLeft >= 6 && c.tyreAge >= 5) {
+          const nx = c.stops[c.stopIdx];
+          if (onWet) { if (c.wear >= 45) pitTo = c.compound; }
+          else if (nx && nx.lap - lap <= 15) {
+            const shift = nx.lap - lap;
+            pitTo = nx.tyre; c.stopIdx++;
+            c.stops.slice(c.stopIdx).forEach((s) => (s.lap = Math.max(lap + 6, s.lap - Math.round(shift / 2))));
+          } else if (!nx && c.wear >= 45 && lapsLeft <= 30) pitTo = slickFor(lapsLeft);
+          if (pitTo) c.scPit = true;
+        }
         const next = c.stops[c.stopIdx];
         if (!pitTo && lapsLeft > 0) {
           if (onWet) {
@@ -463,7 +496,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
           }
         }
         if (pitTo) {
-          let loss = track.pitLoss + (100 - c.car.pitcrew) * 0.03 + rng() * 1.2;
+          let loss = (track.pitLoss + (100 - c.car.pitcrew) * 0.03 + rng() * 1.2) * (sc ? 0.55 : 1);
           if (rng() < 0.02 + (100 - c.car.pitcrew) * 0.001) {
             const extra = 3 + rng() * 4;
             loss += extra;
@@ -471,7 +504,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
           }
           t += loss;
           c.compound = pitTo; c.wear = 0; c.tyreAge = 0; c.used.add(pitTo); c.pits++; c.pitThisLap = true;
-          ev(lap, `🔧 ${c.name} pite girdi → ${D.COMPOUNDS[pitTo].name}${wxPit ? " (hava)" : ""}`, [c.id], "pit", wxPit ? { tyre: pitTo, wx: 1 } : { tyre: pitTo });
+          ev(lap, `🔧 ${c.name} pite girdi → ${D.COMPOUNDS[pitTo].name}${wxPit ? " (hava)" : sc ? " (güvenlik aracı)" : ""}`, [c.id], "pit",
+            wxPit ? { tyre: pitTo, wx: 1 } : sc ? { tyre: pitTo, sc: 1 } : { tyre: pitTo });
         }
         c.lastLap = t;
         c.newTotal = c.total + t;
@@ -479,12 +513,18 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
       // b) Trafik ve sollamalar
       const alive = order.filter((c) => !c.dnf);
-      for (let i = 1; i < alive.length; i++) {
+      if (sc) {
+        // Araçlar güvenlik aracının arkasında toplanır: aralar kapanır, sollama yok
+        alive.sort((a, b) => a.newTotal - b.newTotal);
+        const k = scLapNo === 1 ? 0.6 : 1, lead = alive[0] ? alive[0].newTotal : 0;
+        alive.forEach((c, i) => { c.newTotal = c.newTotal - (c.newTotal - (lead + i * 0.5)) * k; });
+      }
+      for (let i = 1; i < alive.length && !sc; i++) {
         const c = alive[i], a = alive[i - 1];
         if (c.pitThisLap || a.pitThisLap) continue;
         if (c.total - a.total < 1.2 && c.newTotal < a.newTotal + 0.15) {
           const paceDelta = a.lastLap - c.lastLap;
-          const chance = Math.max(0.05, Math.min(0.85, (0.15 + paceDelta * 0.45 + (c.a.racecraft - a.a.racecraft) * 0.035) * track.overtake));
+          const chance = Math.max(0.05, Math.min(0.85, (0.15 + paceDelta * 0.45 + (c.a.racecraft - a.a.racecraft) * (restart ? 0.05 : 0.035)) * track.overtake * (restart ? 1.4 : 1)));
           if (rng() < chance) {
             if (c.newTotal >= a.newTotal) c.newTotal = a.newTotal - 0.1 - rng() * 0.3;
             ev(lap, i === 1 ? `👑 ${c.name} liderliği aldı!` : `⚔️ ${c.name} sollamayı yaptı, ${a.name} geride kaldı`, [c.id, a.id], i === 1 ? "lead" : "overtake");
@@ -498,9 +538,19 @@ import { createClient } from "npm:@supabase/supabase-js@2";
       // c) Toplamları güncelle
       alive.forEach((c) => {
         c.total = c.newTotal; c.lapsDone++;
-        if (!c.pitThisLap && lap > 1 && c.lastLap < c.best) c.best = c.lastLap;
+        if (!c.pitThisLap && !sc && lap > 1 && c.lastLap < c.best) c.best = c.lastLap;
       });
       laps.push(snap(lap));
+      // Güvenlik aracı sayacı
+      restart = false;
+      if (sc) {
+        scLeft--;
+        if (scLeft === 0) { restart = true; scLapNo = 0; ev(lap, "🟢 Güvenlik aracı pite giriyor, yarış yeniden başlıyor!", [], "sc_in"); }
+      } else if (scPending && lapsLeft >= 3) {
+        scLeft = Math.min(lapsLeft - 1, 3 + Math.floor(rng() * 3));
+        ev(lap, "🚨 Güvenlik aracı piste çıktı!", [], "sc_out");
+      }
+      scPending = false;
     }
 
     // d) Kurallar ve sonuç
@@ -578,7 +628,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
     const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
     const replay = {
       v: 2, trackId: track.id, round: input.round, title: input.title || null,
-      fc, wx: sim.laps.map((s) => s.w),
+      fc, wx: sim.laps.map((s) => s.w), sc: sim.laps.map((s) => s.sc || 0),
       entries: entries.map((e) => ({ id: e.id, name: e.name, skill: e.skill, nat: e.nat, age: e.age, teamId: e.teamId, teamName: e.teamName, color: e.color, plan: e.strategy, source: e.source })),
       results: sim.results.map((r) => ({ i: idx[r.id], pos: r.pos, grid: r.grid, total: r.total, gap: r.gap, best: r.best, pits: r.pits, dnf: r.dnf, penalty: r.penalty, fastest: r.fastest, points: r.points })),
       laps: sim.laps.map((s) => {

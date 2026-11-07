@@ -51,7 +51,7 @@
     const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
     const replay = {
       v: 2, trackId: track.id, round: input.round, title: input.title || null,
-      fc, wx: sim.laps.map((s) => s.w),
+      fc, wx: sim.laps.map((s) => s.w), sc: sim.laps.map((s) => s.sc || 0),
       entries: entries.map((e) => ({ id: e.id, name: e.name, skill: e.skill, nat: e.nat, age: e.age, teamId: e.teamId, teamName: e.teamName, color: e.color, plan: e.strategy, source: e.source })),
       results: sim.results.map((r) => ({ i: idx[r.id], pos: r.pos, grid: r.grid, total: r.total, gap: r.gap, best: r.best, pits: r.pits, dnf: r.dnf, penalty: r.penalty, fastest: r.fastest, points: r.points })),
       laps: sim.laps.map((s) => {

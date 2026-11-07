@@ -422,3 +422,24 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
 .wx-badge.damp { border-color: #74c0fc; }
 .wx-badge.wet { background: #1c3d5a; color: #d0ebff; border-color: #339af0; }
 .wx-badge.vwet { background: #10263b; color: #d0ebff; border-color: #1c7ed6; }
+
+/* Ana ekrana ekle kartı */
+.install-card { position: relative; }
+.install-row { display: flex; align-items: center; gap: 14px; padding-right: 22px; }
+.install-row img { border-radius: 12px; flex: 0 0 auto; }
+.install-row > div { flex: 1; }
+.install-x { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; }
+.sc-badge { display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 800; background: #FFD100; color: #15181B; vertical-align: middle; animation: scBlink 1s steps(2) infinite; }
+@keyframes scBlink { 50% { background: #f59f00; } }
+
+/* Sponsor */
+.sp-offers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sp-offer { border: 1px solid var(--line); border-radius: var(--radius, 10px); padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--panel2); }
+.sp-offer .btn { margin-top: auto; }
+.sp-head, .sp-deal { display: flex; gap: 10px; align-items: center; }
+.sp-logo { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; flex: 0 0 auto;
+  font-family: var(--font-display); font-weight: 900; font-size: 17px; background: var(--text); color: var(--panel); letter-spacing: .02em; }
+.sp-money { font-family: var(--font-display); font-weight: 800; font-size: 20px; white-space: nowrap; }
+.sp-money .small { font-family: var(--font-body); font-weight: 400; }
+.sp-desc { line-height: 1.4; }
+@media (max-width: 700px) { .sp-offers { grid-template-columns: 1fr; } }

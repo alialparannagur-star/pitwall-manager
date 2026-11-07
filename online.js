@@ -253,6 +253,81 @@ $("#logoutBtn").onclick = async () => {
   showAuth();
 };
 
+/* ---------- SPONSOR ---------- */
+const SPONSOR_KIND = {
+  safe: { icon: "🛡️", name: "Güvenli", desc: "Her yarış sabit para. Sonuç ne olursa olsun." },
+  balanced: { icon: "⚖️", name: "Dengeli", desc: "Biraz sabit para, hedef tutarsa prim." },
+  risky: { icon: "🎲", name: "Riskli", desc: "Sabit para yok. Hedef tutarsa büyük prim." },
+};
+const goalText = (g) => (g === 1 ? T("en iyi pilot yarışı kazanırsa") : T("en iyi pilot ilk {n} içinde bitirirse", { n: g }));
+async function renderSponsor() {
+  const card = $("#sponsorCard");
+  const t = ME.team, seasonId = ME.league.season_id;
+  if (!t || !seasonId) { card.classList.add("hidden"); return; }
+  let deal = null, offers = [];
+  try {
+    deal = await api.sponsorDeal(t.id, seasonId);
+    if (!deal) offers = await api.sponsorOffers(t.id);
+  } catch (e) { card.classList.add("hidden"); return; }
+  card.classList.remove("hidden");
+  if (deal) {
+    const k = SPONSOR_KIND[deal.kind];
+    const terms = [deal.base ? T("{x} / yarış", { x: money(deal.base) }) : "", deal.bonus ? `${goalText(deal.goal)} +${money(deal.bonus)}` : ""].filter(Boolean).join(" · ");
+    card.innerHTML = `<div class="label">${T("Sponsor")}</div>
+      <div class="sp-deal"><div class="sp-logo">${esc(deal.name.slice(0, 2).toUpperCase())}</div>
+        <div><b>${esc(deal.name)}</b> <span class="muted small">${k.icon} ${T(k.name)}</span>
+          <div class="small">${terms}</div>
+          <div class="small muted">${T("Bu sezon: {r} yarış · {h} hedef tuttu · toplam {x}", { r: deal.races, h: deal.hits, x: money(deal.earned) })}</div></div></div>`;
+    return;
+  }
+  card.innerHTML = `<div class="label">🤝 ${T("Sponsor teklifleri")}</div>
+    <p class="small muted" style="margin-top:0">${T("Bu sezon için bir sponsor seç. Seçim sezon sonuna kadar geçerli. 3. yarışa kadar seçmezsen dengeli teklif otomatik kabul edilir.")}</p>
+    <div class="sp-offers">${offers.map((o) => {
+      const k = SPONSOR_KIND[o.kind];
+      return `<div class="sp-offer">
+        <div class="sp-head"><div class="sp-logo">${esc(o.name.slice(0, 2).toUpperCase())}</div><div><b>${esc(o.name)}</b><div class="small muted">${k.icon} ${T(k.name)}</div></div></div>
+        <div class="sp-money">${o.base ? `${money(o.base)} <span class="small muted">${T("/ yarış")}</span>` : `<span class="muted">—</span>`}</div>
+        <div class="small">${o.bonus ? `🎯 ${goalText(o.goal)}: <b>+${money(o.bonus)}</b>` : T("Prim yok")}</div>
+        <div class="small muted sp-desc">${T(k.desc)}</div>
+        <button class="btn ${o.kind === "balanced" ? "primary" : ""} small-btn" data-sponsor="${o.kind}">${T("Anlaş")}</button>
+      </div>`;
+    }).join("")}</div>`;
+  card.querySelectorAll("[data-sponsor]").forEach((b) => (b.onclick = async () => {
+    try {
+      await busy(b, () => api.signSponsor(b.dataset.sponsor));
+      toast(T("Sponsor anlaşması imzalandı! 🤝"));
+      renderSponsor();
+    } catch (e) { toast(e.message, true); }
+  }));
+}
+
+/* ---------- ANA EKRANA EKLE (uygulama gibi) ---------- */
+let installEvt = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; renderInstall(); });
+window.addEventListener("appinstalled", () => { installEvt = null; try { localStorage.setItem("pitwall_install_x", "1"); } catch (e) {} renderInstall(); });
+function renderInstall() {
+  const card = $("#installCard");
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  let dismissed = false;
+  try { dismissed = localStorage.getItem("pitwall_install_x") === "1"; } catch (e) {}
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const mobile = ios || /android|mobile/i.test(navigator.userAgent);
+  if (standalone || dismissed || (!installEvt && !mobile)) { card.classList.add("hidden"); return; }
+  card.classList.remove("hidden");
+  $("#installBtn").classList.toggle("hidden", !installEvt);
+  $("#installHelp").textContent = installEvt
+    ? T("Ana ekranında simgesiyle, tarayıcı çubuğu olmadan uygulama gibi açılsın.")
+    : ios ? T("Safari'de alttaki Paylaş düğmesine (⬆️) dokun, sonra \"Ana Ekrana Ekle\"yi seç.")
+    : T("Tarayıcının menüsünü (⋮) aç ve \"Ana ekrana ekle\" ya da \"Uygulamayı yükle\"yi seç.");
+}
+$("#installBtn").onclick = async () => {
+  if (!installEvt) return;
+  installEvt.prompt();
+  try { await installEvt.userChoice; } catch (e) {}
+  installEvt = null; renderInstall();
+};
+$("#installX").onclick = () => { try { localStorage.setItem("pitwall_install_x", "1"); } catch (e) {} renderInstall(); };
+
 /* ---------- GERİ BİLDİRİM ---------- */
 let fbKind = "bug";
 const FB_HINT = {
@@ -357,6 +432,8 @@ function showHub() {
   renderLastRace();
   renderNews();
   renderOffers();
+  renderSponsor();
+  renderInstall();
   renderCalendar();
   renderStandings();
   show("hub");
@@ -393,7 +470,7 @@ function renderLastRace() {
       const x = results.find((y) => y.driver_id === d.id);
       return x ? `${esc(d.name)}: <b>${x.dnf ? "DNF" : "P" + x.pos}</b>${x.points ? ` (+${x.points})` : ""}` : "";
     }).filter(Boolean);
-    el.innerHTML = `${parts.join(" · ")}${team ? `<div class="money" style="font-size:16px;margin:6px 0 0">${T("+{x} kazandın", { x: money(team.prize) })}${team.salaries ? ` <span class="muted small" style="font-weight:400">(${T("maaşlar")} −${money(team.salaries)})</span>` : ""}</div>` : ""}`;
+    el.innerHTML = `${parts.join(" · ")}${team ? `<div class="money" style="font-size:16px;margin:6px 0 0">${T("+{x} kazandın", { x: money(team.prize) })}${team.sponsor ? ` <span class="small" style="font-weight:400">${T("sponsor")} +${money(team.sponsor)}</span>` : ""}${team.salaries ? ` <span class="muted small" style="font-weight:400">(${T("maaşlar")} −${money(team.salaries)})</span>` : ""}</div>` : ""}`;
   }).catch(() => {});
 }
 

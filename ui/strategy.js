@@ -73,6 +73,7 @@
         <div class="dp-label">${T("Sürüş modu")}</div>
         <div class="row">${Object.entries(MODES).map(([m, info]) => `<button class="chip ${plan.mode === m ? "active" : ""}" data-mode="${m}">${T(info.name)}</button>`).join("")}</div>
         <label class="small" style="display:block;margin-top:8px"><input type="checkbox" data-pushend ${plan.pushEnd ? "checked" : ""}> ${T("Son 8 turda atak yap (lastik izin verirse)")}</label>
+        <label class="small" style="display:block;margin-top:6px"><input type="checkbox" data-scpit ${plan.scPit !== false ? "checked" : ""}> ${T("Güvenlik aracı çıkarsa ucuz pit fırsatını kullan (yakındaki pit stopu öne çeker)")}</label>
 
         <div class="dp-label">${T("Lastik güvenlik sınırı: aşınma bu değere ulaşırsa erken pite gir")}</div>
         <div class="row">${[75, 85, 95].map((v) => `<button class="chip ${plan.wearLimit === v ? "active" : ""}" data-limit="${v}">%${v}</button>`).join("")}</div>
@@ -107,7 +108,7 @@
         } else if (b.dataset.limit) {
           plan.wearLimit = +b.dataset.limit;
         } else if (b.dataset.sugg) {
-          plans[k] = Object.assign(clone(sugg[+b.dataset.sugg].plan), { wetCall: plan.wetCall });
+          plans[k] = Object.assign(clone(sugg[+b.dataset.sugg].plan), { wetCall: plan.wetCall, scPit: plan.scPit });
         } else return;
         rerender();
       });
@@ -118,6 +119,8 @@
           plan.stops.sort((a, b) => a.lap - b.lap);
         } else if (el.hasAttribute("data-pushend")) {
           plan.pushEnd = el.checked;
+        } else if (el.hasAttribute("data-scpit")) {
+          plan.scPit = el.checked;
         }
         rerender();
       });
