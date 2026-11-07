@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kullanım Koşulları · PitWall Manager</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <meta name="theme-color" content="#15181B">
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("pitwall_theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css?v=0.23">
+  <link rel="stylesheet" href="themes.css?v=0.23">
+  <link rel="stylesheet" href="legal.css?v=0.23">
+  <script src="legal-config.js?v=0.23"></script>
+  <script src="legal.js?v=0.23"></script>
+</head>
+<body data-title-tr="Kullanım Koşulları" data-title-en="Terms of Use">
+  <header class="topbar">
+    <a class="logo" href="./">PITWALL <span>MANAGER</span></a>
+    <div class="top-right">
+      <button id="langSwitch" class="btn ghost small-btn">🌐 English</button>
+      <a class="btn ghost small-btn" href="./"><span data-lang="tr">← Oyuna dön</span><span data-lang="en" hidden>← Back to the game</span></a>
+    </div>
+  </header>
+
+  <main class="legal">
+    <!-- ====================== TÜRKÇE ====================== -->
+    <article data-lang="tr" class="card">
+      <h1>Kullanım Koşulları</h1>
+      <p class="muted">Son güncelleme: <span data-legal="updated"></span></p>
+
+      <h2>1. Taraflar ve kabul</h2>
+      <p>Bu Kullanım Koşulları ("<b>Koşullar</b>"), PitWall Manager çevrimiçi oyununu ("<b>Oyun</b>") yayınlayan
+        <b data-legal="owner"></b> ("<b>biz</b>") ile Oyun'a kayıt olan kişi ("<b>sen</b>" veya "<b>oyuncu</b>") arasındaki ilişkiyi düzenler.
+        Kayıt sırasında Koşullar'ı kabul ettiğini belirten kutucuğu işaretleyerek ve Oyun'u kullanarak bu Koşullar'a uymayı kabul edersin.
+        Kişisel verilerinin nasıl işlendiği ayrıca <a href="gizlilik.html">Gizlilik ve Aydınlatma Metni</a>'nde açıklanmıştır.</p>
+
+      <h2>2. Oyun nedir?</h2>
+      <p>Oyun, kurgusal takım, pilot, pist ve sponsor adlarıyla oynanan, tarayıcı tabanlı, <b>ücretsiz ve ticari olmayan</b> bir yarış menajerliği oyunudur.
+        Herhangi bir gerçek otomobil yarışı serisi, takımı, pilotu ya da markasıyla bağlantısı yoktur ve onlar tarafından desteklenmez.
+        Oyunda satın alma, reklam ya da gerçek para ile yapılan bir işlem yoktur.</p>
+
+      <h2>3. Hesap</h2>
+      <ul>
+        <li>Kayıt için geçerli ve sana ait bir e-posta adresi gerekir. Her kişi yalnızca <b>bir hesap</b> açabilir.</li>
+        <li>Şifrenin güvenliğinden sen sorumlusun. Hesabının başkası tarafından kullanıldığını fark edersen şifreni değiştir ve bize bildir.</li>
+        <li>Hesabını ve takımını başkasına satamaz, devredemezsin.</li>
+        <li>Kullanıcı adın ve takım adın başkalarının haklarını ihlal edemez; hakaret, küfür, nefret söylemi ya da gerçek kişilerin kimliğine bürünme içeremez.</li>
+      </ul>
+
+      <h2>4. Yaş</h2>
+      <p>Oyun'a <b>13 yaşından küçükler</b> kayıt olamaz. 18 yaşından küçüksen Oyun'u velinin bilgisi ve izniyle kullanabilirsin.</p>
+
+      <h2>5. Davranış kuralları</h2>
+      <p>Oyun'da, özellikle lig sohbetinde ve geri bildirimlerde şunlar yasaktır:</p>
+      <ul>
+        <li>hakaret, küfür, tehdit, taciz, ayrımcılık, nefret söylemi,</li>
+        <li>kendinin ya da başkalarının kişisel bilgilerini (telefon, adres, kimlik bilgisi vb.) paylaşmak,</li>
+        <li>spam, reklam, zararlı ya da yanıltıcı bağlantılar paylaşmak,</li>
+        <li>birden fazla hesap açmak, hesaplar arasında para veya pilot aktararak avantaj sağlamak,</li>
+        <li>hile yapmak, otomatik araçlar (bot, betik) kullanmak, Oyun'daki hataları kasıtlı olarak istismar etmek,</li>
+        <li>Oyun'un sunucularına zarar verecek, aşırı yük bindirecek ya da başkalarının hesaplarına erişmeye çalışacak girişimlerde bulunmak,</li>
+        <li>Türkiye Cumhuriyeti kanunlarına aykırı her türlü içerik ve davranış.</li>
+      </ul>
+      <p>Oyun'da bir hata bulursan lütfen geri bildirim kutusundan bize bildir.</p>
+
+      <h2>6. Oyuncu içerikleri</h2>
+      <p>Sohbet mesajlarının, kullanıcı adının ve takım adının sorumluluğu sana aittir. Bu içerikleri Oyun'un işleyişi için (örneğin sıralamalarda, sohbette
+        ve tarihçede gösterilmesi için) kullanmamıza izin verirsin. Koşullar'a aykırı içerikleri önceden haber vermeden kaldırabiliriz.</p>
+
+      <h2>7. Oyun içi para ve öğeler</h2>
+      <p>Oyundaki para, puanlar, pilotlar, araç geliştirmeleri, kupalar ve diğer tüm öğeler sanaldır; <b>gerçek bir parasal değeri yoktur</b>,
+        gerçek para ya da başka bir değerle değiştirilemez, satılamaz. Oyun dengesi, ekonomi ve kurallar zaman içinde değişebilir; sezon geçişlerinde
+        araçlar, para ve diğer değerler kurallara göre kısmen sıfırlanır.</p>
+
+      <h2>8. Hizmetin sunulması ve sorumluluk</h2>
+      <ul>
+        <li>Oyun ücretsiz bir hobi projesi olarak "<b>olduğu gibi</b>" sunulur. Kesintisiz ya da hatasız çalışacağını garanti edemeyiz.</li>
+        <li>Bakım, güncelleme, teknik arıza ya da hizmet sağlayıcılardan kaynaklanan sebeplerle Oyun geçici olarak durabilir, yarışlar ertelenebilir ya da
+          oyun verileri kaybolabilir. Gerektiğinde sezonları ya da Oyun'un tamamını sıfırlayabiliriz.</li>
+        <li>Oyun'u önceden duyurarak tamamen kapatabiliriz.</li>
+        <li>Kanunun izin verdiği ölçüde, Oyun'un kullanımından ya da kullanılamamasından doğan dolaylı zararlardan sorumlu değiliz.
+          Bu sınırlama, kast ve ağır ihmal hâllerinde ve kanunen sınırlanamayan sorumluluklarda uygulanmaz.</li>
+      </ul>
+
+      <h2>9. Fikrî mülkiyet</h2>
+      <p>Oyun'un yazılımı, tasarımı, görselleri ve metinleri bize aittir veya açık lisanslarla kullanılmaktadır. Oyun'u kopyalayamaz, başka bir yerde
+        yayınlayamaz ya da ticari amaçla kullanamazsın.</p>
+
+      <h2>10. Hesabın askıya alınması ve kapatılması</h2>
+      <p>Koşullar'ı ihlal etmen hâlinde uyarı verebilir, sohbet hakkını kısıtlayabilir, hesabını geçici olarak askıya alabilir ya da kapatabiliriz.
+        Hesabı kapatılan oyuncunun takımı bir bota devredilir.</p>
+
+      <h2>11. Hesabını silmek</h2>
+      <p>Hesabını istediğin zaman oyuna giriş yaptıktan sonra sayfanın altındaki "<b>Hesabımı sil</b>" bağlantısıyla silebilirsin. Silinen hesap geri getirilemez;
+        takımın bir bota devredilir. Ayrıntılar Gizlilik ve Aydınlatma Metni'ndedir.</p>
+
+      <h2>12. Değişiklikler</h2>
+      <p>Bu Koşullar'ı değiştirebiliriz. Esaslı değişikliklerde Oyun'a bir sonraki girişinde yeni metni onaylaman istenir;
+        onaylamazsan Oyun'u kullanmaya devam edemezsin ama hesabını silebilirsin.</p>
+
+      <h2>13. Uygulanacak hukuk ve uyuşmazlıklar</h2>
+      <p>Bu Koşullar Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda <span data-legal="city"></span> mahkemeleri ve icra daireleri yetkilidir.
+        Tüketici sıfatıyla sahip olduğun kanuni haklar (tüketici hakem heyetlerine ve tüketici mahkemelerine başvuru hakkı dahil) saklıdır.</p>
+
+      <h2>14. İletişim</h2>
+      <p><b data-legal="owner"></b> · <a data-legal="email"></a></p>
+    </article>
+
+    <!-- ====================== ENGLISH ====================== -->
+    <article data-lang="en" class="card" hidden>
+      <h1>Terms of Use</h1>
+      <p class="muted">Last updated: <span data-legal="updated"></span></p>
+      <p class="muted small">This is a translation. In case of any discrepancy, the Turkish version prevails.</p>
+
+      <h2>1. Parties and acceptance</h2>
+      <p>These Terms of Use (the "<b>Terms</b>") govern the relationship between <b data-legal="owner"></b> ("<b>we</b>"), who publishes the online game
+        PitWall Manager (the "<b>Game</b>"), and the person who registers for the Game ("<b>you</b>" or the "<b>player</b>"). By ticking the box at sign-up
+        and by using the Game, you agree to these Terms. How your personal data is processed is explained separately in the <a href="gizlilik.html?lang=en">Privacy Notice</a>.</p>
+
+      <h2>2. What is the Game?</h2>
+      <p>The Game is a <b>free, non-commercial</b> browser-based racing management game played with fictional teams, drivers, tracks and sponsors.
+        It is not affiliated with or endorsed by any real motor racing series, team, driver or brand. There are no purchases, ads or real-money transactions.</p>
+
+      <h2>3. Account</h2>
+      <ul>
+        <li>You need a valid email address that belongs to you. Each person may have only <b>one account</b>.</li>
+        <li>You are responsible for keeping your password safe. If someone else uses your account, change your password and let us know.</li>
+        <li>You may not sell or transfer your account or team.</li>
+        <li>Your username and team name must not infringe others' rights or contain insults, profanity, hate speech or impersonation of real people.</li>
+      </ul>
+
+      <h2>4. Age</h2>
+      <p>Children <b>under 13</b> may not register. If you are under 18, you may use the Game with your parent's or guardian's knowledge and permission.</p>
+
+      <h2>5. Rules of conduct</h2>
+      <p>In the Game, especially in league chat and feedback, the following are not allowed:</p>
+      <ul>
+        <li>insults, profanity, threats, harassment, discrimination or hate speech,</li>
+        <li>sharing your own or others' personal information (phone, address, ID details, etc.),</li>
+        <li>spam, advertising, harmful or misleading links,</li>
+        <li>having more than one account, or moving money or drivers between accounts for an advantage,</li>
+        <li>cheating, using automated tools (bots, scripts), or deliberately exploiting bugs,</li>
+        <li>attempting to harm or overload the Game's servers or to access other players' accounts,</li>
+        <li>any content or behaviour that breaks the law.</li>
+      </ul>
+      <p>If you find a bug, please report it through the feedback box.</p>
+
+      <h2>6. Player content</h2>
+      <p>You are responsible for your chat messages, username and team name. You allow us to use them for running the Game (for example, showing them in standings,
+        chat and history). We may remove content that breaks these Terms without notice.</p>
+
+      <h2>7. In-game money and items</h2>
+      <p>All money, points, drivers, upgrades, trophies and other items in the Game are virtual; they have <b>no real monetary value</b> and cannot be exchanged
+        for real money or sold. Game balance, economy and rules may change over time; at season changes cars, money and other values are partly reset under the rules.</p>
+
+      <h2>8. Availability and liability</h2>
+      <ul>
+        <li>The Game is a free hobby project provided "<b>as is</b>". We cannot guarantee that it will run without interruption or errors.</li>
+        <li>The Game may stop temporarily, races may be postponed, or game data may be lost due to maintenance, updates, technical failures or our service providers.
+          We may reset seasons or the whole Game when necessary.</li>
+        <li>We may close the Game permanently after announcing it.</li>
+        <li>To the extent permitted by law, we are not liable for indirect damages arising from using or being unable to use the Game. This limitation does not apply
+          to intent, gross negligence or liability that cannot be limited by law.</li>
+      </ul>
+
+      <h2>9. Intellectual property</h2>
+      <p>The Game's software, design, images and texts belong to us or are used under open licences. You may not copy, republish or use the Game commercially.</p>
+
+      <h2>10. Suspension and termination</h2>
+      <p>If you break these Terms we may warn you, restrict your chat, suspend or close your account. The team of a closed account is handed over to a bot.</p>
+
+      <h2>11. Deleting your account</h2>
+      <p>You can delete your account at any time with the "<b>Delete my account</b>" link at the bottom of the page after logging in. Deleted accounts cannot be restored;
+        your team is handed over to a bot. See the Privacy Notice for details.</p>
+
+      <h2>12. Changes</h2>
+      <p>We may change these Terms. For significant changes you will be asked to accept the new version the next time you open the Game; if you do not accept,
+        you cannot continue playing, but you can delete your account.</p>
+
+      <h2>13. Governing law and disputes</h2>
+      <p>These Terms are governed by the laws of the Republic of Türkiye. The courts and enforcement offices of <span data-legal="city"></span> have jurisdiction.
+        Any mandatory consumer rights you have under the law of your country of residence remain unaffected.</p>
+
+      <h2>14. Contact</h2>
+      <p><b data-legal="owner"></b> · <a data-legal="email"></a></p>
+    </article>
+  </main>
+</body>
+</html>

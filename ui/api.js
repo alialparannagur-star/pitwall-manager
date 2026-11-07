@@ -225,6 +225,16 @@
         return () => { try { db.removeChannel(ch); } catch (e) {} };
       } catch (e) { return () => {}; }
     },
+    async myTerms() {
+      return must(await db.rpc("my_terms"));
+    },
+    async acceptTerms(version) {
+      must(await db.rpc("accept_terms", { p_version: version }));
+    },
+    async deleteAccount(confirm) {
+      must(await db.rpc("delete_my_account", { p_confirm: confirm }));
+      try { await db.auth.signOut({ scope: "local" }); } catch (e) {}
+    },
     async seasonHistory() {
       return must(await db.rpc("season_history")) || [];
     },

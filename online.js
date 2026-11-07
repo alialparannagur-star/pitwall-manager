@@ -119,6 +119,8 @@ async function enter() {
   if (!team) { await showJoin(); return; }
   ME.team = team;
   applyTeamColor(team.color);
+  $("#footerDelete").classList.remove("hidden");
+  checkTerms();
   ME.league = team.leagues;
   if (!ME.flags) {
     try {
@@ -151,9 +153,52 @@ async function loadLeague() {
 let authMode = "login";
 function showAuth() {
   $("#logoutBtn").classList.add("hidden");
+  $("#footerDelete").classList.add("hidden");
   $("#topInfo").textContent = "";
   show("landing");
 }
+
+/* ---------- KULLANIM KOŞULLARI VE HESAP SİLME ---------- */
+const TERMS_VERSION = (window.PW_LEGAL && PW_LEGAL.termsVersion) || 1;
+async function checkTerms() {
+  let v = 0;
+  try { v = await api.myTerms(); } catch (e) { return; }   // sunucuda henüz kurulmadıysa oyunu engelleme
+  if (v >= TERMS_VERSION) return;
+  let pending = 0;
+  try { pending = +localStorage.getItem("pitwall_terms_pending") || 0; } catch (e) {}
+  if (pending >= TERMS_VERSION) {
+    try { await api.acceptTerms(TERMS_VERSION); localStorage.removeItem("pitwall_terms_pending"); return; } catch (e) {}
+  }
+  $("#termsModalCheck").checked = false;
+  $("#termsMsg").textContent = "";
+  $("#termsModal").classList.remove("hidden");
+}
+$("#termsAccept").onclick = async () => {
+  if (!$("#termsModalCheck").checked) { $("#termsMsg").className = "form-msg bad"; $("#termsMsg").textContent = T("Devam etmek için kutucuğu işaretle."); return; }
+  try {
+    await busy($("#termsAccept"), () => api.acceptTerms(TERMS_VERSION));
+    $("#termsModal").classList.add("hidden");
+    toast(T("Teşekkürler, iyi yarışlar! 🏁"));
+  } catch (e) { $("#termsMsg").className = "form-msg bad"; $("#termsMsg").textContent = e.message; }
+};
+$("#termsLogout").onclick = () => { $("#termsModal").classList.add("hidden"); $("#logoutBtn").click(); };
+const openDelete = () => { $("#deleteConfirm").value = ""; $("#deleteConfirm").placeholder = PW_I18N.lang === "en" ? "DELETE" : "SİL"; $("#deleteMsg").textContent = ""; $("#deleteModal").classList.remove("hidden"); $("#deleteConfirm").focus(); };
+$("#termsDelete").onclick = () => { $("#termsModal").classList.add("hidden"); openDelete(); };
+$("#deleteOpen").onclick = openDelete;
+$("#deleteCancel").onclick = () => { $("#deleteModal").classList.add("hidden"); if (ME.team) checkTerms(); };
+$("#deleteGo").onclick = async () => {
+  const msg = $("#deleteMsg");
+  try {
+    await busy($("#deleteGo"), () => api.deleteAccount($("#deleteConfirm").value));
+    $("#deleteModal").classList.add("hidden");
+    document.querySelector(".nav").classList.add("hidden");
+    $("#fbBtn").classList.add("hidden");
+    Object.assign(ME, { user: null, team: null, league: null, teams: [], races: [] });
+    clearInterval(countdownTimer);
+    showAuth();
+    toast(T("Hesabın ve kişisel verilerin silindi. Görüşmek üzere!"));
+  } catch (e) { msg.className = "form-msg bad"; msg.textContent = e.message; }
+};
 function openAuth(mode) { setAuthMode(mode); show("auth"); $("#authEmail").focus(); }
 $("#lpSignup").onclick = () => openAuth("signup");
 $("#lpSignup2").onclick = () => openAuth("signup");
@@ -167,6 +212,7 @@ function setAuthMode(mode) {
   $("#authMsg").textContent = "";
   $("#forgotLink").classList.toggle("hidden", mode !== "login");
   $("#resendBtn").classList.add("hidden");
+  document.querySelectorAll(".signup-only").forEach((el) => el.classList.toggle("hidden", mode !== "signup"));
 }
 document.querySelectorAll("[data-authmode]").forEach((b) => (b.onclick = () => setAuthMode(b.dataset.authmode)));
 
@@ -180,6 +226,9 @@ $("#authForm").onsubmit = async (ev) => {
   try {
     await busy($("#authSubmit"), async () => {
       if (authMode === "signup") {
+        if (!$("#termsCheck").checked) throw new Error(T("Kayıt olmak için Kullanım Koşulları'nı kabul etmelisin."));
+        // Kabul, profil oluşunca (ülke seçiminden sonra) sunucuya kaydedilir
+        try { localStorage.setItem("pitwall_terms_pending", String(TERMS_VERSION)); } catch (e) {}
         const r = await api.signUp(email, pass);
         if (r.needsConfirm) {
           msg.className = "form-msg ok";

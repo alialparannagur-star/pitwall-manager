@@ -115,3 +115,6 @@
 }
 /* Açılır pencereler saydam olmasın */
 [data-theme] .modal-box.card { background: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+/* Menü kalabalıklaşınca: yazılar kırılmasın, takım bilgisi gizlensin */
+.nav-btn, .topbar .btn { white-space: nowrap; }
+@media (max-width: 1360px) { .topbar .top-info { display: none; } }

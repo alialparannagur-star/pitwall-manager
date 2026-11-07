@@ -1,0 +1,28 @@
+/* Yasal sayfalar */
+.legal { max-width: 860px; margin: 0 auto; padding: 28px 16px 60px; }
+.legal article { padding: 26px 30px; line-height: 1.6; }
+.legal h1 { margin-top: 0; }
+.legal h2 { font-size: 22px !important; margin: 26px 0 8px; }
+.legal ul { padding-left: 22px; }
+.legal li { margin: 4px 0; }
+.legal a { color: var(--link); }
+.legal-table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 14.5px; }
+.legal-table th, .legal-table td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.legal-table th { background: var(--panel2); font-family: var(--font-display); font-size: 15px; }
+.todo { background: #ffe066; color: #000; padding: 1px 4px; border-radius: 3px; font-weight: 600; }
+.topbar a.logo { text-decoration: none; }
+.topbar a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+@media (max-width: 700px) {
+  .legal article { padding: 18px 16px; }
+  .legal-table { font-size: 13px; }
+  .legal-table th, .legal-table td { padding: 6px; }
+}
+
+/* Oyun içi alt bilgi ve onay pencereleri */
+.site-footer { position: relative; z-index: 1; text-align: center; padding: 26px 16px 90px; font-size: 13.5px; color: var(--muted); }
+.site-footer a, .site-footer button { color: var(--muted); background: none; border: 0; font: inherit; cursor: pointer; text-decoration: underline; padding: 0 4px; }
+.terms-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 10px 0 4px; line-height: 1.45; }
+.terms-check input { margin-top: 3px; flex: 0 0 auto; }
+.terms-note { font-size: 13px; color: var(--muted); margin: 6px 0 0; line-height: 1.45; }
+.danger-btn { background: #c92a2a !important; color: #fff !important; border-color: #c92a2a !important; }
+#deleteConfirm { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font: inherit; margin: 8px 0; }
