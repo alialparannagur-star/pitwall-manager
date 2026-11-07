@@ -26,8 +26,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=0.20">
-  <link rel="stylesheet" href="themes.css?v=0.20">
+  <link rel="stylesheet" href="style.css?v=0.21">
+  <link rel="stylesheet" href="themes.css?v=0.21">
 </head>
 <body>
   <header class="topbar">
@@ -37,6 +37,7 @@
       <button id="navLeagues" class="nav-btn">🌍 Ligler</button>
       <button id="navWorld" class="nav-btn">🏆 Dünya</button>
       <button id="navMarket" class="nav-btn">🔄 Pazar</button>
+      <button id="navHistory" class="nav-btn">📜 Tarihçe</button>
     </nav>
     <div class="top-right">
       <span id="topInfo" class="top-info"></span>
@@ -224,7 +225,17 @@
             <table id="calendar" class="mini"></table>
           </div>
         </div>
-        <div class="card" id="hubStandings"></div>
+        <div>
+          <div class="card" id="hubStandings"></div>
+          <div class="card chat-card" id="chatCard">
+            <div class="label">🗨️ <span>Lig sohbeti</span></div>
+            <div id="chatList" class="chat-list"></div>
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" maxlength="300" autocomplete="off" placeholder="Ligdeki herkese yaz…">
+              <button id="chatSend" class="btn primary small-btn" type="submit">Gönder</button>
+            </form>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -296,6 +307,18 @@
     </section>
 
     <!-- PİLOT PAZARI -->
+    <section id="history" class="screen hidden">
+      <div class="card wide-narrow" style="margin:0 auto">
+        <h2>📜 Tarihçe ve rekorlar</h2>
+        <div class="row hist-tabs">
+          <button class="chip active" data-htab="champs">🏆 Şampiyonlar</button>
+          <button class="chip" data-htab="records">📊 Rekorlar</button>
+        </div>
+        <div class="row hist-scope" id="histScope"></div>
+        <div id="historyBody"><p class="muted">Yükleniyor…</p></div>
+      </div>
+    </section>
+
     <section id="market" class="screen hidden">
       <div class="card wide-narrow" style="margin:0 auto">
         <div class="garage-head">
@@ -427,13 +450,13 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=0.20"></script>
-  <script src="shared/data.js?v=0.20"></script>
-  <script src="shared/engine.js?v=0.20"></script>
-  <script src="ui/i18n.js?v=0.20"></script>
-  <script src="ui/api.js?v=0.20"></script>
-  <script src="ui/strategy.js?v=0.20"></script>
-  <script src="ui/replay.js?v=0.20"></script>
-  <script src="online.js?v=0.20"></script>
+  <script src="config.js?v=0.21"></script>
+  <script src="shared/data.js?v=0.21"></script>
+  <script src="shared/engine.js?v=0.21"></script>
+  <script src="ui/i18n.js?v=0.21"></script>
+  <script src="ui/api.js?v=0.21"></script>
+  <script src="ui/strategy.js?v=0.21"></script>
+  <script src="ui/replay.js?v=0.21"></script>
+  <script src="online.js?v=0.21"></script>
 </body>
 </html>

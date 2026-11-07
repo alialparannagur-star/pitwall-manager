@@ -253,6 +253,130 @@ $("#logoutBtn").onclick = async () => {
   showAuth();
 };
 
+/* ---------- LİG SOHBETİ ---------- */
+let chatLeague = null, chatUnsub = null, chatPoll = null, chatBusy = false;
+function chatTime(iso) {
+  const d = new Date(iso), now = new Date();
+  const t = d.toLocaleTimeString(LOCALE(), { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === now.toDateString() ? t : d.toLocaleDateString(LOCALE(), { day: "numeric", month: "short" }) + " " + t;
+}
+async function loadChat() {
+  if (!chatLeague || chatBusy) return;
+  chatBusy = true;
+  try {
+    const msgs = await api.leagueMessages(chatLeague);
+    const box = $("#chatList");
+    if (!box) return;
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    box.innerHTML = msgs.length ? msgs.map((m) => {
+      const mine = ME.user && m.user_id === ME.user.id;
+      return `<div class="chat-msg ${mine ? "mine" : ""}">
+        <div class="chat-meta"><span class="dot" style="background:${esc(m.team_color)}"></span><b>${esc(m.username)}</b>
+          <span class="muted">${esc(m.team_name)} · ${chatTime(m.created_at)}</span>
+          ${mine ? `<button class="chat-del" data-del="${m.id}" title="${T("Sil")}">×</button>` : ""}</div>
+        <div class="chat-body">${esc(m.body)}</div></div>`;
+    }).join("") : `<p class="muted small">${T("Henüz mesaj yok. İlk yazan sen ol! 👋")}</p>`;
+    if (atBottom || !box.dataset.ready) box.scrollTop = box.scrollHeight;
+    box.dataset.ready = "1";
+    box.querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => {
+      try { await api.deleteMessage(+b.dataset.del); loadChat(); } catch (e) { toast(e.message, true); }
+    }));
+  } catch (e) {
+    $("#chatList").innerHTML = `<p class="muted small">${esc(e.message)}</p>`;
+  } finally { chatBusy = false; }
+}
+function startChat() {
+  const lid = (ME.team && ME.team.league_id) || (ME.league && ME.league.id);
+  if (!lid) return;
+  if (chatLeague !== lid) {
+    if (chatUnsub) chatUnsub();
+    chatLeague = lid;
+    $("#chatList").dataset.ready = "";
+    chatUnsub = api.subscribeMessages(lid, () => loadChat());
+    clearInterval(chatPoll);
+    // Canlı bağlantı kopsa bile yarım dakikada bir yenile (sadece Merkez açıkken)
+    chatPoll = setInterval(() => { if (!$("#hub").classList.contains("hidden") && !document.hidden) loadChat(); }, 30000);
+  }
+  loadChat();
+}
+$("#chatForm").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const input = $("#chatInput"), text = input.value.trim();
+  if (!text) return;
+  try {
+    await busy($("#chatSend"), () => api.sendMessage(text));
+    input.value = "";
+    loadChat();
+  } catch (e) { toast(e.message, true); }
+};
+
+/* ---------- TARİHÇE VE REKORLAR ---------- */
+let histTab = "champs", histScope = null;
+const KIND_MEDAL = { world_champion: "🏆", world_second: "🥈", world_third: "🥉" };
+const userTag = (u) => (u ? ` <span class="muted small">👤 ${esc(u)}</span>` : ` <span class="muted small">🤖</span>`);
+const teamTag = (name, color) => `<span class="dot" style="background:${esc(color || "#888")}"></span>${esc(name)}`;
+const lapFmt = (t) => { const m = Math.floor(t / 60), s = (t - m * 60).toFixed(3).padStart(6, "0"); return `${m}:${s}`; };
+async function showHistory() {
+  afterReplay = null;
+  show("history");
+  if (histScope === null) histScope = "";
+  renderHistory();
+}
+document.querySelectorAll("[data-htab]").forEach((b) => (b.onclick = () => {
+  histTab = b.dataset.htab;
+  document.querySelectorAll("[data-htab]").forEach((x) => x.classList.toggle("active", x === b));
+  renderHistory();
+}));
+async function renderHistory() {
+  const body = $("#historyBody");
+  const myCountry = ME.league && ME.league.country_code;
+  const cName = ME.league && ME.league.countries ? `${ME.league.countries.flag} ${countryName(myCountry, ME.league.countries.name)}` : myCountry;
+  $("#histScope").innerHTML = histTab === "records"
+    ? `<button class="chip ${!histScope ? "active" : ""}" data-scope="">🌍 ${T("Tüm dünya")}</button>
+       <button class="chip ${histScope ? "active" : ""}" data-scope="${esc(myCountry || "")}">${cName}</button>`
+    : "";
+  $("#histScope").querySelectorAll("[data-scope]").forEach((b) => (b.onclick = () => { histScope = b.dataset.scope; renderHistory(); }));
+  body.innerHTML = `<p class="muted">${T("Yükleniyor…")}</p>`;
+  try {
+    if (histTab === "champs") {
+      const seasons = await api.seasonHistory();
+      if (!seasons.length) { body.innerHTML = `<p class="muted">${T("Henüz tamamlanmış sezon yok. İlk sezon bitince şampiyonlar burada görünecek.")}</p>`; return; }
+      body.innerHTML = seasons.map((s) => {
+        const mine = s.leagues.filter((l) => l.country === myCountry);
+        const others = s.leagues.filter((l) => l.country !== myCountry);
+        return `<div class="hist-season">
+          <h3>${T("Sezon {n}", { n: s.season })}</h3>
+          <div class="hist-podium">${s.world.map((w) => `<div class="hp ${w.kind}"><div class="hp-medal">${KIND_MEDAL[w.kind] || ""}</div>
+            <div><b>${teamTag(w.team, w.color)}</b> ${w.flag || ""}${userTag(w.user)}</div></div>`).join("") || `<p class="muted small">${T("Dünya finali yapılmadı.")}</p>`}</div>
+          <div class="label" style="margin-top:12px">🏅 ${T("Lig şampiyonları")}</div>
+          <table class="mini hist-leagues">${mine.concat(others).map((l) => `<tr class="${l.country === myCountry ? "me" : ""}">
+            <td>${l.flag || ""} ${esc(leagueName({ name: l.league, tier: l.tier, country_code: l.country }))}</td><td>${teamTag(l.team, l.color)}${userTag(l.user)}</td></tr>`).join("")}</table>
+        </div>`;
+      }).join("");
+      return;
+    }
+    const R = await api.records(histScope || null);
+    const drv = (x) => `${flagOf(x.nationality)} ${esc(x.name)}${x.retired ? ` <span class="muted small">(${T("emekli")})</span>` : ""} <span class="muted small">${esc(x.team || "")}</span>`;
+    const list = (title, rows, fmtRow) => `<div class="rec-box"><div class="label">${title}</div>${rows && rows.length
+      ? `<table class="mini">${rows.map((r, i) => `<tr><td class="rk">${i + 1}</td>${fmtRow(r)}</tr>`).join("")}</table>`
+      : `<p class="muted small">${T("Henüz veri yok.")}</p>`}</div>`;
+    body.innerHTML = `<div class="rec-grid">
+      ${list("🏁 " + T("En çok yarış kazanan pilotlar"), R.wins, (r) => `<td>${drv(r)}</td><td class="num"><b>${r.n}</b></td>`)}
+      ${list("🥇 " + T("En çok podyum"), R.podiums, (r) => `<td>${drv(r)}</td><td class="num"><b>${r.n}</b></td>`)}
+      ${list("🏎️ " + T("En çok galibiyet alan takımlar"), R.team_wins, (r) => `<td>${teamTag(r.name, r.color)}${userTag(r.user)}</td><td class="num"><b>${r.n}</b></td>`)}
+      ${list("🏆 " + T("En çok şampiyonluk"), R.titles, (r) => `<td>${teamTag(r.name, r.color)}${userTag(r.user)}</td><td class="num">${r.world ? `🏆×${r.world} ` : ""}${r.league ? `🏅×${r.league}` : ""}</td>`)}
+      ${list("📈 " + T("Bir sezonda en çok puan"), R.season_points, (r) => `<td>${teamTag(r.name, r.color)}${userTag(r.user)} <span class="muted small">${T("Sezon {n}", { n: r.season })}</span></td><td class="num"><b>${r.n}</b></td>`)}
+      ${list("🚀 " + T("En geriden gelen galibiyetler"), R.comebacks, (r) => `<td>${drv(r)} <span class="muted small">· ${TRACK[r.track_id] ? TRACK[r.track_id].flag + " " + esc(trackName(TRACK[r.track_id])) : ""} · ${T("Sezon {n}", { n: r.season })}</span></td><td class="num">${T("{n}. sıradan", { n: r.grid })}</td>`)}
+    </div>
+    <div class="rec-box"><div class="label">⏱️ ${T("Pist rekorları (en hızlı tur)")}</div>
+      ${R.fastest && R.fastest.length ? `<table class="mini">${R.fastest.map((f) => `<tr><td>${TRACK[f.track_id] ? TRACK[f.track_id].flag + " " + esc(trackName(TRACK[f.track_id])) : esc(f.track_id)}</td>
+        <td class="num"><b>${lapFmt(+f.best)}</b></td><td>${flagOf(f.nationality)} ${esc(f.name)} <span class="muted small">${esc(f.team)} · ${T("Sezon {n}", { n: f.season })}</span></td></tr>`).join("")}</table>`
+      : `<p class="muted small">${T("Henüz veri yok.")}</p>`}</div>`;
+  } catch (e) {
+    body.innerHTML = `<p class="bad-text">${esc(e.message)}</p>`;
+  }
+}
+
 /* ---------- SPONSOR ---------- */
 const SPONSOR_KIND = {
   safe: { icon: "🛡️", name: "Güvenli", desc: "Her yarış sabit para. Sonuç ne olursa olsun." },
@@ -433,6 +557,7 @@ function showHub() {
   renderNews();
   renderOffers();
   renderSponsor();
+  startChat();
   renderInstall();
   renderCalendar();
   renderStandings();
@@ -1213,6 +1338,7 @@ $("#navHub").onclick = async () => { afterReplay = null; await loadLeague(); sho
 $("#navLeagues").onclick = showLeagues;
 $("#navWorld").onclick = showWorld;
 $("#navMarket").onclick = showMarket;
+$("#navHistory").onclick = showHistory;
 $("#teamBack").onclick = () => goBackFrom("teamPage");
 $("#leagueBack").onclick = () => goBackFrom("leaguePage");
 $("#pilotsBack").onclick = showHub;

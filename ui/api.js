@@ -205,6 +205,32 @@
     async cancelOffer(offerId) {
       return must(await db.rpc("cancel_offer", { p_offer: offerId }));
     },
+    async leagueMessages(leagueId) {
+      const rows = must(await db.from("league_messages").select("id, user_id, username, team_name, team_color, body, created_at")
+        .eq("league_id", leagueId).order("id", { ascending: false }).limit(60));
+      return (rows || []).reverse();
+    },
+    async sendMessage(body) {
+      must(await db.rpc("send_league_message", { p_body: body }));
+    },
+    async deleteMessage(id) {
+      must(await db.rpc("delete_league_message", { p_id: id }));
+    },
+    // Canlı sohbet: yeni mesaj gelince cb çağrılır; dönen fonksiyon aboneliği kapatır
+    subscribeMessages(leagueId, cb) {
+      try {
+        const ch = db.channel("league-chat-" + leagueId)
+          .on("postgres_changes", { event: "*", schema: "public", table: "league_messages", filter: "league_id=eq." + leagueId }, () => cb())
+          .subscribe();
+        return () => { try { db.removeChannel(ch); } catch (e) {} };
+      } catch (e) { return () => {}; }
+    },
+    async seasonHistory() {
+      return must(await db.rpc("season_history")) || [];
+    },
+    async records(country) {
+      return must(await db.rpc("all_time_records", { p_country: country || null })) || {};
+    },
     async sponsorDeal(teamId, seasonId) {
       return must(await db.from("sponsor_deals").select("*").eq("team_id", teamId).eq("season_id", seasonId).maybeSingle());
     },
