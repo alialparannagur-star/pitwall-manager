@@ -147,6 +147,8 @@
     "Mesaj en fazla 300 karakter olabilir.": "Messages can be at most 300 characters.",
     "Biraz yavaş! Birkaç saniye bekle.": "Slow down! Wait a few seconds.",
     "Bugünlük mesaj sınırına ulaştın.": "You've reached today's message limit.",
+    "Dünya şampiyonları": "World champions",
+    "Tüm tarihçe ve rekorlar →": "Full history and records →",
     "Çıkış": "Log out", "Açık temaya geç": "Switch to light theme", "Koyu temaya geç": "Switch to dark theme", "Yükleniyor…": "Loading…", "Bekle…": "Please wait…", "Sil": "Delete", "Vazgeç": "Cancel",
     "← Geri": "← Back", "← Merkez": "← Home", "← Merkeze dön": "← Back to home", "Merkeze dön →": "Back to home →",
     "oyuncu": "player", "bot": "bot", "Bot takım": "Bot team", "Menajer": "Manager",

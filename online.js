@@ -1115,6 +1115,16 @@ async function showWorld() {
         html += `<div class="card"><h3>${T("Sezon {n} kazananları", { n: S.number - 1 })}</h3><div class="podium">${prev.sort((a, b) => order[a.kind] - order[b.kind]).map((x) =>
           `<div class="pod pod-${order[x.kind]}" ${x.team_id ? `data-team="${x.team_id}"` : ""}><div class="pod-medal">${["🏆", "🥈", "🥉"][order[x.kind] - 1]}</div><b>${esc(x.team_name)}</b></div>`).join("")}</div></div>`;
       }
+      // Tüm zamanların dünya şampiyonları
+      const hist = await api.seasonHistory().catch(() => []);
+      const champs = hist.map((s) => ({ season: s.season, w: s.world.find((x) => x.kind === "world_champion") })).filter((x) => x.w);
+      if (champs.length) {
+        html += `<div class="card"><h3>🏆 ${T("Dünya şampiyonları")}</h3>
+          <table class="mini">${champs.map((c) => `<tr><td class="muted">${T("Sezon {n}", { n: c.season })}</td>
+            <td><span class="dot" style="background:${esc(c.w.color || "#888")}"></span><b>${esc(c.w.team)}</b> ${c.w.flag || ""}
+            ${c.w.user ? `<span class="muted small">👤 ${esc(c.w.user)}</span>` : `<span class="muted small">🤖</span>`}</td></tr>`).join("")}</table>
+          <div class="btn-row"><button class="btn small-btn" id="worldHistBtn">📜 ${T("Tüm tarihçe ve rekorlar →")}</button></div></div>`;
+      }
     }
 
     if (!groups.length) {
@@ -1162,6 +1172,7 @@ async function showWorld() {
     });
 
     $("#worldBody").innerHTML = html;
+    if ($("#worldHistBtn")) $("#worldHistBtn").onclick = () => { histTab = "champs"; document.querySelectorAll("[data-htab]").forEach((x) => x.classList.toggle("active", x.dataset.htab === "champs")); showHistory(); };
     afterReplay = async () => { afterReplay = null; await showWorld(); };
     show("world");
   } catch (e) { toast(e.message, true); }
