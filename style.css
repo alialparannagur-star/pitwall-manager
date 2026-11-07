@@ -472,3 +472,32 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
 .rec-box td.rk { width: 22px; color: var(--muted); font-weight: 700; }
 .rec-box td.num { text-align: right; white-space: nowrap; }
 @media (max-width: 800px) { .rec-grid { grid-template-columns: 1fr; } }
+
+/* Rozetler */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin-top: 10px; }
+.ach { border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; text-align: center; background: var(--panel2); }
+.ach.locked { opacity: .45; filter: grayscale(1); }
+.ach.got { border-color: var(--gold); background: var(--gold-bg); }
+.ach.new { box-shadow: 0 0 0 2px var(--gold); animation: achPop .6s ease-out; }
+@keyframes achPop { 0% { transform: scale(.8); } 70% { transform: scale(1.08); } 100% { transform: scale(1); } }
+.ach-icon { font-size: 26px; line-height: 1.2; }
+.ach-name { font-size: 12.5px; font-weight: 700; margin-top: 2px; line-height: 1.2; }
+.ach-reward { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.ach-news { background: var(--gold-bg); border: 1px solid var(--gold); border-radius: 8px; padding: 8px 10px; margin: 6px 0 8px; line-height: 1.6; }
+#achCard summary { cursor: pointer; margin-top: 4px; }
+.team-ach { margin-top: 12px; }
+
+/* Rehber */
+.tour-spot { position: fixed; z-index: 90; border-radius: 12px; pointer-events: none; transition: all .25s ease;
+  box-shadow: 0 0 0 9999px rgba(10, 12, 15, .62), 0 0 0 3px var(--accent); }
+.tour-box { position: fixed; z-index: 91; width: 380px; margin: 0; padding: 16px 18px; box-shadow: 0 18px 50px rgba(0,0,0,.4);
+  background: var(--panel) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.tour-box h3 { margin: 0 0 6px; color: var(--text) !important; font-size: 20px !important; }
+.tour-box p { margin: 0 0 12px; line-height: 1.5; }
+.tour-count { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.tour-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Bildirim kartı */
+.push-card { position: relative; }
+.push-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+.push-btns { display: flex; gap: 6px; }

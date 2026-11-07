@@ -26,9 +26,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=0.23">
-  <link rel="stylesheet" href="themes.css?v=0.23">
-  <link rel="stylesheet" href="legal.css?v=0.23">
+  <link rel="stylesheet" href="style.css?v=0.25">
+  <link rel="stylesheet" href="themes.css?v=0.25">
+  <link rel="stylesheet" href="legal.css?v=0.25">
 </head>
 <body>
   <header class="topbar">
@@ -214,6 +214,8 @@
           </div>
           <div class="card hidden offers-card" id="offersCard"></div>
           <div class="card hidden sponsor-card" id="sponsorCard"></div>
+          <div class="card hidden push-card" id="pushCard"></div>
+          <div class="card hidden" id="achCard"></div>
           <div class="card hidden news" id="newsCard"></div>
           <div class="card hidden" id="lastRaceCard">
             <div class="label">Son yarış</div>
@@ -490,19 +492,21 @@
   <footer class="site-footer">
     <a href="gizlilik.html">Gizlilik ve Aydınlatma Metni</a> ·
     <a href="kosullar.html">Kullanım Koşulları</a>
-    <span id="footerDelete" class="hidden">· <button id="deleteOpen" type="button">Hesabımı sil</button></span>
+    <span id="footerDelete" class="hidden">· <button id="tourOpen" type="button">❓ Rehber</button> · <button id="deleteOpen" type="button">Hesabımı sil</button></span>
     <div>© PitWall Manager · <span>Gerçek bir yarış serisiyle bağlantısı olmayan, ücretsiz bir hobi oyunudur.</span></div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="legal-config.js?v=0.23"></script>
-  <script src="config.js?v=0.23"></script>
-  <script src="shared/data.js?v=0.23"></script>
-  <script src="shared/engine.js?v=0.23"></script>
-  <script src="ui/i18n.js?v=0.23"></script>
-  <script src="ui/api.js?v=0.23"></script>
-  <script src="ui/strategy.js?v=0.23"></script>
-  <script src="ui/replay.js?v=0.23"></script>
-  <script src="online.js?v=0.23"></script>
+  <script src="legal-config.js?v=0.25"></script>
+  <script src="config.js?v=0.25"></script>
+  <script src="shared/data.js?v=0.25"></script>
+  <script src="shared/engine.js?v=0.25"></script>
+  <script src="ui/i18n.js?v=0.25"></script>
+  <script src="ui/api.js?v=0.25"></script>
+  <script src="ui/achievements.js?v=0.25"></script>
+  <script src="ui/tour.js?v=0.25"></script>
+  <script src="ui/strategy.js?v=0.25"></script>
+  <script src="ui/replay.js?v=0.25"></script>
+  <script src="online.js?v=0.25"></script>
 </body>
 </html>

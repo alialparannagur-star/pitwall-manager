@@ -5,15 +5,15 @@
    ========================================================= */
 window.PW_LEGAL = {
   // Veri sorumlusu: gerçek adın ve soyadın (takma ad yeterli değil)
-  owner: "[Ali Alpar ANNAGÜR]",
+  owner: "[AD SOYAD]",
   // Yasal yazışmaların gönderilebileceği açık adres (il/ilçe dahil)
-  address: "[Turkey,Adana,Seyhan]",
+  address: "[TEBLİGAT ADRESİ]",
   // Oyuncuların başvurabileceği e-posta (oyun için ayrı bir adres açabilirsin)
-  email: "[aaannagurapps@gmail.com]",
+  email: "[İLETİŞİM E-POSTASI]",
   // Uyuşmazlıklarda yetkili mahkemenin bulunduğu il
-  city: "[Adana]",
+  city: "[İL]",
   // Supabase > Project Settings > General > Region (ör. "Avrupa Birliği – Frankfurt, Almanya")
-  dbRegion: "[eu-west-1]",
+  dbRegion: "[SUPABASE SUNUCU BÖLGESİ]",
   // Metinlerin son güncellenme tarihi
   updated: "7 Kasım 2026",
   updatedEn: "7 November 2026",

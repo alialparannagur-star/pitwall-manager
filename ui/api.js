@@ -225,6 +225,21 @@
         return () => { try { db.removeChannel(ch); } catch (e) {} };
       } catch (e) { return () => {}; }
     },
+    async achievements(userId) {
+      return must(await db.from("achievements_earned").select("code, reward, earned_at, seen").eq("user_id", userId)) || [];
+    },
+    async markAchievementsSeen() {
+      must(await db.rpc("mark_achievements_seen"));
+    },
+    async savePush(endpoint, p256dh, auth, lang) {
+      must(await db.rpc("save_push_subscription", { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth, p_lang: lang }));
+    },
+    async deletePush(endpoint) {
+      must(await db.rpc("delete_push_subscription", { p_endpoint: endpoint }));
+    },
+    async requestTestPush() {
+      must(await db.rpc("request_test_push"));
+    },
     async myTerms() {
       return must(await db.rpc("my_terms"));
     },

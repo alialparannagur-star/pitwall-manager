@@ -20,7 +20,16 @@ Deno.serve(async () => {
   };
   try {
     const report = await (globalThis as any).PW_RUNNER.runDueRaces(rpc, 50);
-    return new Response(JSON.stringify({ ok: true, processed: report.filter((r: any) => r.race).length, report }), { headers: { "Content-Type": "application/json" } });
+    // Telefon bildirimleri (anahtarlar Edge Functions > Secrets bölümünde tanımlıysa). Hata olsa bile yarışları etkilemez.
+    let push: unknown = null;
+    try {
+      push = await (globalThis as any).PW_NOTIFY.sendPending(rpc, {
+        publicKey: Deno.env.get("VAPID_PUBLIC_KEY"),
+        privateKey: Deno.env.get("VAPID_PRIVATE_KEY"),
+        subject: Deno.env.get("VAPID_SUBJECT") || "mailto:pitwall@example.com",
+      });
+    } catch (e) { push = { error: String((e as Error).message || e) }; }
+    return new Response(JSON.stringify({ ok: true, processed: report.filter((r: any) => r.race).length, push, report }), { headers: { "Content-Type": "application/json" } });
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String((e as Error).message || e) }), { status: 500, headers: { "Content-Type": "application/json" } });
   }

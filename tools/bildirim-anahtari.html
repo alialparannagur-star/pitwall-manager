@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bildirim anahtarı oluştur · PitWall Manager</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 30px auto; padding: 0 16px; line-height: 1.5; color: #15181b; }
+    h1 { margin-bottom: 4px; }
+    .box { border: 1px solid #ccd; border-radius: 10px; padding: 14px 16px; margin: 14px 0; background: #f7f8fa; }
+    .key { font-family: ui-monospace, monospace; font-size: 14px; word-break: break-all; background: #fff; border: 1px solid #ccd; border-radius: 6px; padding: 8px; margin: 6px 0; }
+    button { font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 8px; border: 0; background: #ffd100; cursor: pointer; }
+    .warn { background: #fff4e5; border-color: #f5a623; }
+    .small { font-size: 13px; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>🔔 Bildirim anahtarı oluştur</h1>
+  <p>Bu sayfa bilgisayarında, internete hiçbir şey göndermeden bir anahtar çifti üretir. Anahtarlar sadece bu ekranda görünür.
+    Sayfayı kapatınca kaybolurlar; bir kez oluşturup aşağıdaki yerlere yapıştırman yeterli.</p>
+  <button id="go">Anahtar oluştur</button>
+  <div id="out" hidden>
+    <div class="box">
+      <b>1) Açık anahtar (public)</b> — herkese açık olabilir.<br>
+      <span class="small"><code>config.js</code> dosyasında <code>VAPID_PUBLIC_KEY: "..."</code> satırına yapıştır. Ayrıca Supabase'de
+        <b>Edge Functions → Secrets</b> bölümüne <code>VAPID_PUBLIC_KEY</code> adıyla ekle.</span>
+      <div class="key" id="pub"></div>
+    </div>
+    <div class="box warn">
+      <b>2) Gizli anahtar (private)</b> — ⚠️ kimseyle paylaşma, hiçbir web dosyasına yazma!<br>
+      <span class="small">Sadece Supabase'de <b>Edge Functions → Secrets</b> bölümüne <code>VAPID_PRIVATE_KEY</code> adıyla ekle.</span>
+      <div class="key" id="priv"></div>
+    </div>
+    <div class="box">
+      <b>3) İletişim adresi</b><br>
+      <span class="small">Supabase'de <b>Edge Functions → Secrets</b> bölümüne <code>VAPID_SUBJECT</code> adıyla şunu ekle
+        (kendi e-postanla): </span>
+      <div class="key">mailto:senin-e-postan@ornek.com</div>
+    </div>
+  </div>
+  <script>
+    const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    document.getElementById("go").onclick = async () => {
+      const k = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+      document.getElementById("pub").textContent = b64u(await crypto.subtle.exportKey("raw", k.publicKey));
+      document.getElementById("priv").textContent = (await crypto.subtle.exportKey("jwk", k.privateKey)).d;
+      document.getElementById("out").hidden = false;
+    };
+  </script>
+</body>
+</html>

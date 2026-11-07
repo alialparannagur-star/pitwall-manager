@@ -134,6 +134,7 @@ async function enter() {
   $("#fbBtn").classList.remove("hidden");
   await loadLeague();
   showHub();
+  if (!tourSeen("hub")) setTimeout(() => { if (!$("#termsModal").classList.contains("hidden") || PW_Tour.active()) return; hubTour(); }, 900);
 }
 
 async function loadLeague() {
@@ -179,6 +180,7 @@ $("#termsAccept").onclick = async () => {
     await busy($("#termsAccept"), () => api.acceptTerms(TERMS_VERSION));
     $("#termsModal").classList.add("hidden");
     toast(T("Teşekkürler, iyi yarışlar! 🏁"));
+    if (!tourSeen("hub")) setTimeout(hubTour, 600);
   } catch (e) { $("#termsMsg").className = "form-msg bad"; $("#termsMsg").textContent = e.message; }
 };
 $("#termsLogout").onclick = () => { $("#termsModal").classList.add("hidden"); $("#logoutBtn").click(); };
@@ -426,6 +428,153 @@ async function renderHistory() {
   }
 }
 
+/* ---------- TELEFON BİLDİRİMLERİ ---------- */
+const PUSH_KEY = (window.PW_CONFIG && PW_CONFIG.VAPID_PUBLIC_KEY) || "";
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && location.protocol !== "file:";
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+let swReg = null;
+async function getSwReg() {
+  if (swReg) return swReg;
+  swReg = await navigator.serviceWorker.register("sw.js");
+  return swReg;
+}
+const keyBytes = (b64) => { const s = (b64 + "===".slice((b64.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/"); return Uint8Array.from(atob(s), (c) => c.charCodeAt(0)); };
+async function currentSub() {
+  if (!pushSupported()) return null;
+  try { return await (await getSwReg()).pushManager.getSubscription(); } catch (e) { return null; }
+}
+async function renderPush() {
+  const card = $("#pushCard");
+  if (!PUSH_KEY || !ME.user) { card.classList.add("hidden"); return; }
+  let dismissed = false;
+  try { dismissed = localStorage.getItem("pitwall_push_x") === "1"; } catch (e) {}
+  if (!pushSupported()) {
+    if (isIOS() && !isStandalone() && !dismissed) {
+      card.classList.remove("hidden");
+      card.innerHTML = `<button class="install-x" data-pushx>×</button><b>🔔 ${T("Bildirimler")}</b>
+        <div class="small muted">${T("iPhone'da bildirim almak için önce oyunu ana ekrana ekle, sonra oradan açıp bildirimleri aç.")}</div>`;
+      card.querySelector("[data-pushx]").onclick = () => { try { localStorage.setItem("pitwall_push_x", "1"); } catch (e) {} renderPush(); };
+    } else card.classList.add("hidden");
+    return;
+  }
+  const sub = await currentSub();
+  if (sub) {
+    // Aboneliği her girişte tazele (cihaz başka hesaba geçtiyse ya da dil değiştiyse)
+    const j = sub.toJSON();
+    api.savePush(j.endpoint, j.keys.p256dh, j.keys.auth, PW_I18N.lang).catch(() => {});
+    card.classList.remove("hidden");
+    card.innerHTML = `<div class="push-row"><span>🔔 <b>${T("Bildirimler açık")}</b> <span class="small muted">${T("yarış sonuçları, strateji hatırlatmaları, rozetler")}</span></span>
+      <span class="push-btns"><button class="btn small-btn" id="pushTest">${T("Deneme gönder")}</button>
+      <button class="btn ghost small-btn" id="pushOff">${T("Bildirimleri kapat")}</button></span></div>`;
+    $("#pushTest").onclick = async () => {
+      try { await busy($("#pushTest"), () => api.requestTestPush()); toast(T("Deneme bildirimi en geç 5 dakika içinde gelecek.")); }
+      catch (e) { toast(e.message, true); }
+    };
+    $("#pushOff").onclick = async () => {
+      try { await busy($("#pushOff"), async () => { const s = await currentSub(); if (s) { const ep = s.endpoint; await s.unsubscribe(); await api.deletePush(ep); } }); toast(T("Bildirimler kapatıldı.")); }
+      catch (e) { toast(e.message, true); }
+      renderPush();
+    };
+    return;
+  }
+  if (dismissed) { card.classList.add("hidden"); return; }
+  card.classList.remove("hidden");
+  const denied = Notification.permission === "denied";
+  card.innerHTML = `<button class="install-x" data-pushx>×</button>
+    <div class="install-row"><div style="font-size:34px">🔔</div>
+      <div><b>${T("Bildirimleri aç")}</b>
+        <div class="small muted">${denied ? T("Bildirimler bu tarayıcıda engellenmiş. Tarayıcının site ayarlarından izin verip sayfayı yenile.")
+          : T("Yarışın bitince sonucunu, yarıştan 1 saat önce strateji hatırlatmasını ve yeni rozetlerini telefonuna gönderelim.")}</div></div>
+      ${denied ? "" : `<button class="btn primary small-btn" id="pushOn">${T("Aç")}</button>`}</div>`;
+  card.querySelector("[data-pushx]").onclick = () => { try { localStorage.setItem("pitwall_push_x", "1"); } catch (e) {} renderPush(); };
+  if (!denied) $("#pushOn").onclick = async () => {
+    try {
+      await busy($("#pushOn"), async () => {
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") throw new Error(T("Bildirim izni verilmedi."));
+        const reg = await getSwReg();
+        await navigator.serviceWorker.ready;
+        const s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(PUSH_KEY) });
+        const j = s.toJSON();
+        await api.savePush(j.endpoint, j.keys.p256dh, j.keys.auth, PW_I18N.lang);
+      });
+      toast(T("Bildirimler açıldı! 🔔"));
+    } catch (e) { toast(e.message, true); }
+    renderPush();
+  };
+}
+
+/* ---------- YENİ OYUNCU REHBERİ ---------- */
+const tourSeen = (k) => { try { return localStorage.getItem("pitwall_tour_" + k) === "1"; } catch (e) { return true; } };
+const tourMark = (k) => { try { localStorage.setItem("pitwall_tour_" + k, "1"); } catch (e) {} };
+function hubTour() {
+  const card = (sel) => () => { const el = $(sel); return el ? el.closest(".card") : null; };
+  PW_Tour.start([
+    { title: T("Hoş geldin, takım patronu! 👋"), text: T("Kısa bir turla oyunu tanıyalım. İstediğin zaman geçebilir, sayfanın altındaki \"❓ Rehber\" bağlantısıyla yeniden açabilirsin.") },
+    { el: card("#nextRace"), title: T("Sıradaki yarış"), text: T("Pist, tur sayısı, hava tahmini ve geri sayım burada. Yarışlar her gün belli saatte kendiliğinden koşulur; senin işin yarıştan önce hazırlanmak.") },
+    { el: "#goStrategyBtn", title: T("Strateji"), text: T("Her yarıştan önce lastikleri, pit stopları, sürüş modunu ve yağmur tepkisini buradan seç. Kaydetmezsen mühendislerin önerdiği plan kullanılır.") },
+    { el: "#goGarageBtn", title: T("Garaj"), text: T("Kazandığın parayla aracını geliştir. Her pistte farklı bir parça daha önemli: motor, aerodinamik, şasi…") },
+    { el: "#goPilotsBtn", title: T("Pilotlar"), text: T("Pilotların yarışlardan gelişim puanı kazanır. Puanları buradan hız, yarışçılık, lastik yönetimi ve istikrara dağıt.") },
+    { el: "#sponsorCard", title: T("Sponsor"), text: T("Her sezon bir sponsor seç: güvenli sabit para mı, yoksa hedefi tutarsa büyük prim mi?") },
+    { el: "#achCard", title: T("Rozetler"), text: T("Başarıları topla; her rozet takım kasana para ödülü olarak eklenir.") },
+    { el: "#hubStandings", title: T("Puan durumu"), text: T("Ligdeki takımlar ve pilotlar. Bir takımın adına tıklayıp sayfasını, sonuçlarını ve kupalarını görebilirsin.") },
+    { el: "#chatCard", title: T("Lig sohbeti"), text: T("Ligindeki diğer oyuncularla buradan yazış.") },
+    { el: ".nav", title: T("Menü"), text: T("Diğer liglere, dünya turnuvasına, pilot pazarına ve tarihçeye buradan ulaşırsın.") },
+    { el: "#fbBtn", title: T("Geri bildirim"), text: T("Bir hata görürsen ya da aklına bir fikir gelirse buradan yaz, doğrudan geliştiriciye gider.") },
+    { title: T("Hazırsın! 🏁"), text: T("İlk işin sıradaki yarış için stratejini kurmak. İyi yarışlar!"), doneLabel: T("Strateji kur →"), action: () => $("#goStrategyBtn").click() },
+  ], { onDone: () => tourMark("hub") });
+}
+function strategyTour() {
+  const first = () => document.querySelector("#plans .card, #plans > div");
+  const label = (n) => () => {
+    const c = first(); if (!c) return null;
+    const l = c.querySelectorAll(".dp-label")[n]; if (!l) return null;
+    const out = [l]; let x = l.nextElementSibling;
+    while (x && !x.classList.contains("dp-label")) { out.push(x); x = x.nextElementSibling; }
+    return out;
+  };
+  PW_Tour.start([
+    { el: "#stratInfo", title: T("Yarış bilgisi"), text: T("Pistin lastik aşınması, sollama zorluğu, pit kaybı ve hava tahmini. Stratejini bunlara göre kur.") },
+    { el: label(0), title: T("Başlangıç lastiği"), text: T("Yumuşak hızlı ama çabuk aşınır, sert yavaş ama dayanıklı. Yarışta en az 2 farklı lastik kullanmalısın, yoksa ceza alırsın.") },
+    { el: label(1), title: T("Pit stoplar"), text: T("Kaçıncı turda pite girip hangi lastiğe geçeceğini seç. Her pit stop yaklaşık 20 saniye kaybettirir.") },
+    { el: label(2), title: T("Plan önizleme"), text: T("Mühendisler planının ne kadar iyi olduğunu tahmin eder ve lastiklerin ne kadar aşınacağını gösterir.") },
+    { el: label(3), title: T("Sürüş modu"), text: T("Atak daha hızlı ama lastiği daha çok yıpratır; Koru tam tersi. Güvenlik aracı fırsatını da buradan aç ya da kapat.") },
+    { el: label(5), title: T("Yağmur tepkisi"), text: T("Yağmur gelirse mühendislerin ne zaman ara ya da yağmur lastiğine geçeceğini seç.") },
+    { el: label(6), title: T("Hazır öneriler"), text: T("Emin değilsen mühendislerin önerilerinden birini seç, tek tıkla plana yazılır.") },
+    { el: "#saveStratBtn", title: T("Kaydetmeyi unutma!"), text: T("Değişiklikler ancak kaydedince geçerli olur. Yarış başlayana kadar istediğin kadar değiştirebilirsin."), doneLabel: T("Anladım 👍") },
+  ], { onDone: () => tourMark("strat") });
+}
+$("#tourOpen").onclick = () => { if (ME.team) { showHub(); setTimeout(hubTour, 300); } };
+
+/* ---------- BAŞARI ROZETLERİ ---------- */
+const achGrid = (earned, opts = {}) => {
+  const got = Object.fromEntries((earned || []).map((e) => [e.code, e]));
+  return `<div class="ach-grid">${PW_ACH.map((a) => {
+    const e = got[a.code];
+    if (opts.onlyEarned && !e) return "";
+    const tip = `${T(a.name)} — ${T(a.desc)} (+${money(a.reward)})`;
+    return `<div class="ach ${e ? "got" : "locked"} ${e && !e.seen && opts.markNew ? "new" : ""}" title="${esc(tip)}">
+      <div class="ach-icon">${a.icon}</div><div class="ach-name">${T(a.name)}</div>
+      <div class="ach-reward">${e ? "✓" : "+" + money(a.reward)}</div></div>`;
+  }).join("")}</div>`;
+};
+async function renderAchievements() {
+  const card = $("#achCard");
+  if (!ME.user) { card.classList.add("hidden"); return; }
+  let earned = [];
+  try { earned = await api.achievements(ME.user.id); } catch (e) { card.classList.add("hidden"); return; }
+  card.classList.remove("hidden");
+  const fresh = earned.filter((e) => !e.seen);
+  card.innerHTML = `<div class="label">🏅 ${T("Rozetler")} <span class="muted small">${earned.length} / ${PW_ACH.length}</span></div>
+    ${fresh.length ? `<div class="ach-news">${fresh.map((e) => { const a = PW_ACH.find((x) => x.code === e.code); return a ? `🎉 <b>${a.icon} ${T(a.name)}</b> ${T("rozetini kazandın!")} <span class="good-text">+${money(e.reward)}</span>` : ""; }).join("<br>")}</div>` : ""}
+    <details ${fresh.length ? "open" : ""}><summary class="small muted">${T("Tüm rozetleri göster")}</summary>${achGrid(earned, { markNew: true })}</details>`;
+  if (fresh.length) {
+    toast(T("🏅 Yeni rozet! Ödülün kasana eklendi."));
+    api.markAchievementsSeen().catch(() => {});
+  }
+}
+
 /* ---------- SPONSOR ---------- */
 const SPONSOR_KIND = {
   safe: { icon: "🛡️", name: "Güvenli", desc: "Her yarış sabit para. Sonuç ne olursa olsun." },
@@ -606,6 +755,8 @@ function showHub() {
   renderNews();
   renderOffers();
   renderSponsor();
+  renderAchievements();
+  renderPush();
   startChat();
   renderInstall();
   renderCalendar();
@@ -839,6 +990,10 @@ async function showTeam(teamId) {
     teamBack = backTo;
     afterReplay = async () => { afterReplay = null; await showTeam(teamId); };
     show("teamPage");
+    if (t.owner_id) api.achievements(t.owner_id).then((list) => {
+      const el = $("#teamTrophies");
+      if (el && list.length) el.insertAdjacentHTML("afterend", `<div class="team-ach"><div class="label">🏅 ${T("Rozetler")} (${list.length})</div>${achGrid(list, { onlyEarned: true })}</div>`);
+    }).catch(() => {});
     api.trophies(teamId).then((list) => {
       const el = $("#teamTrophies");
       if (el && list.length) el.innerHTML = list.map((x) => `<span class="trophy ${esc(x.kind)}">${esc(trStored(x.label))}</span>`).join("");
@@ -1356,6 +1511,7 @@ async function showStrategy() {
   updateStratStatus(saved.length > 0);
   PW_Strategy.render($("#plans"), strat.ctx);
   show("strategy");
+  if (!tourSeen("strat") && !PW_Tour.active()) setTimeout(strategyTour, 400);
 }
 
 function updateStratStatus(hasSaved) {
