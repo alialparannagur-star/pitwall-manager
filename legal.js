@@ -2,7 +2,11 @@
 (function () {
   var L = window.PW_LEGAL || {};
   var lang = "tr";
-  try { lang = localStorage.getItem("pitwall_lang") === "en" ? "en" : "tr"; } catch (e) {}
+  try {
+    var saved = localStorage.getItem("pitwall_lang");
+    lang = saved === "en" || saved === "tr" ? saved
+      : ((navigator.language || "").toLowerCase().indexOf("tr") === 0 ? "tr" : "en");
+  } catch (e) {}
   var q = /[?&]lang=(tr|en)/.exec(location.search);
   if (q) lang = q[1];
 
