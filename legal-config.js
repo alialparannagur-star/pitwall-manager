@@ -15,8 +15,8 @@ window.PW_LEGAL = {
   // Supabase > Project Settings > General > Region (ör. "Avrupa Birliği – Frankfurt, Almanya")
   dbRegion: "eu-west-1",
   // Metinlerin son güncellenme tarihi
-  updated: "7 Kasım 2026",
-  updatedEn: "7 November 2026",
+  updated: "8 Kasım 2026",
+  updatedEn: "8 November 2026",
   // Kullanım Koşulları sürümü: metni esaslı değiştirirsen 1 artır, oyuncular yeniden onaylar
   termsVersion: 1,
 };
