@@ -706,21 +706,26 @@ globalThis.PW_TRACK_EN = {
     return new Uint8Array(await subtle.sign("HMAC", k, data));
   }
 
+  // Anahtarları kopyala-yapıştırdan gelebilecek boşluk, satır sonu, tırnak ve standart base64 karakterlerinden arındır
+  const cleanKey = (s) => String(s || "").replace(/[\s"'`“”‘’]/g, "").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
   // VAPID özel anahtarını (32 bayt, base64url) ve açık anahtarını (65 bayt) imza anahtarına çevir
   async function vapidSigningKey(publicB64u, privateB64u) {
-    const pub = b64uToBytes(publicB64u);
-    if (pub.length !== 65 || pub[0] !== 4) throw new Error("VAPID açık anahtarı geçersiz");
-    const jwk = { kty: "EC", crv: "P-256", d: privateB64u.replace(/=+$/, ""), x: bytesToB64u(pub.slice(1, 33)), y: bytesToB64u(pub.slice(33, 65)), ext: true };
+    const pub = b64uToBytes(cleanKey(publicB64u));
+    if (pub.length !== 65 || pub[0] !== 4) throw new Error(`VAPID_PUBLIC_KEY geçersiz (${pub.length} bayt, 65 olmalı)`);
+    const priv = b64uToBytes(cleanKey(privateB64u));
+    if (priv.length !== 32) throw new Error(`VAPID_PRIVATE_KEY geçersiz (${priv.length} bayt, 32 olmalı)`);
+    const jwk = { kty: "EC", crv: "P-256", d: bytesToB64u(priv), x: bytesToB64u(pub.slice(1, 33)), y: bytesToB64u(pub.slice(33, 65)), ext: true };
     return subtle.importKey("jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
   }
 
   async function vapidHeader(endpoint, vapid) {
     const aud = new URL(endpoint).origin;
     const header = bytesToB64u(enc.encode(JSON.stringify({ typ: "JWT", alg: "ES256" })));
-    const payload = bytesToB64u(enc.encode(JSON.stringify({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: vapid.subject })));
+    const payload = bytesToB64u(enc.encode(JSON.stringify({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: String(vapid.subject || "").trim() })));
     const key = await vapidSigningKey(vapid.publicKey, vapid.privateKey);
     const sig = new Uint8Array(await subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, enc.encode(header + "." + payload)));
-    return `vapid t=${header}.${payload}.${bytesToB64u(sig)}, k=${vapid.publicKey.replace(/=+$/, "")}`;
+    return `vapid t=${header}.${payload}.${bytesToB64u(sig)}, k=${cleanKey(vapid.publicKey)}`;
   }
 
   // RFC 8291: içeriği aboneliğin anahtarlarıyla şifrele
@@ -767,7 +772,7 @@ globalThis.PW_TRACK_EN = {
     return { status: res.status, text: text.slice(0, 200) };
   }
 
-  g.PW_WEBPUSH = { send, encrypt, vapidHeader, b64uToBytes, bytesToB64u };
+  g.PW_WEBPUSH = { send, encrypt, vapidHeader, b64uToBytes, bytesToB64u, cleanKey };
 })(typeof globalThis !== "undefined" ? globalThis : window);
 
 /* =========================================================

@@ -163,7 +163,7 @@ begin
   end loop;
 
   -- 4) Deneme bildirimleri
-  for r in delete from push_tests returning user_id loop
+  for r in delete from push_tests where true returning user_id loop
     items := items || jsonb_build_object('user_id', r.user_id, 'kind', 'test', 'data', '{}'::jsonb);
   end loop;
 
