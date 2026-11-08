@@ -725,7 +725,10 @@ async function showJoin() {
     PW_I18N.rememberCountries(list);
     sel.innerHTML = `<option value="">${T("Ülkeni seç…")}</option>` +
       list.slice().sort((a, b) => countryName(a.code, a.name).localeCompare(countryName(b.code, b.name), LOCALE())).map((c) => `<option value="${esc(c.code)}">${esc(c.flag)} ${esc(countryName(c.code, c.name))}</option>`).join("");
-    if (list.some((c) => c.code === "TR")) sel.value = "TR";
+    // Varsayılan: Türkçe cihazda Türkiye, diğerlerinde Uluslararası lig (yabancılar bir arada toplansın)
+    const isTr = (navigator.language || "").toLowerCase().startsWith("tr");
+    const def = isTr ? "TR" : "INT";
+    if (list.some((c) => c.code === def)) sel.value = def;
     let inv = null;
     try { inv = localStorage.getItem("pitwall_invite_cc"); } catch (e) {}
     if (inv && list.some((c) => c.code === inv)) sel.value = inv;
