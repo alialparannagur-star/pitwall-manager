@@ -351,6 +351,8 @@ table.clickable tr[data-team]:hover td { background: var(--panel2); }
 @keyframes lpPulse { 0% { box-shadow: 0 0 0 0 rgba(229,72,77,.6); } 70% { box-shadow: 0 0 0 9px rgba(229,72,77,0); } 100% { box-shadow: 0 0 0 0 rgba(229,72,77,0); } }
 h1.lp-title { font-family: var(--font-display); font-size: clamp(44px, 6vw, 84px) !important; line-height: .95 !important; font-weight: 900 !important; margin: 0 0 18px; letter-spacing: .005em; }
 .lp-title span { display: block; }
+.lp-hero > * { min-width: 0; }
+.lp-title, .lp-lead { overflow-wrap: anywhere; }
 .lp-accent { color: var(--accent); white-space: nowrap; }
 :root[data-theme="light"] .lp-accent { color: var(--text); background: linear-gradient(transparent 62%, var(--accent) 62% 92%, transparent 92%); display: inline !important; }
 :root[data-theme="light"] .lp-title .lp-accent + span { margin-top: 0; }
