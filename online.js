@@ -938,23 +938,46 @@ function calendarHtml(races, highlightId) {
 
 function renderStandings() {
   $("#hubStandings").innerHTML = standingsHtml(ME.teams);
+  leagueZones(ME.league).then((z) => { if (z.up || z.down) $("#hubStandings").innerHTML = standingsHtml(ME.teams, z); }).catch(() => {});
+}
+
+// Yükselme / düşme bölgeleri: alt ligde ilk 2 yükselir, altında lig olan ligde son 2 düşer
+const ZONE_CACHE = {};
+async function leagueZones(L) {
+  if (!L || !L.season_id) return {};
+  const key = L.season_id + ":" + L.country_code + ":" + L.tier;
+  if (!(key in ZONE_CACHE)) {
+    const lower = await api.leagueExists(L.season_id, L.country_code, L.tier + 1);
+    const prefix = L.name.replace(/\d+\. Lig$/, "");
+    ZONE_CACHE[key] = {
+      up: L.tier > 1 ? 2 : 0, down: lower ? 2 : 0,
+      upName: prefix + (L.tier - 1) + ". Lig", downName: prefix + (L.tier + 1) + ". Lig",
+    };
+  }
+  return ZONE_CACHE[key];
 }
 
 // Puan tablosu (her lig için kullanılır). Takım satırına tıklayınca takım sayfası açılır.
-function standingsHtml(teamList) {
+function standingsHtml(teamList, zones = {}) {
   const teams = teamList.slice().sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+  const n = teams.length;
+  const zoneOf = (i) => (zones.up && i < zones.up ? "zone-up" : zones.down && i >= n - zones.down ? "zone-down" : "");
+  const legend = zones.up || zones.down ? `<div class="zone-legend small muted">${[
+    zones.up ? `<span class="zl-up">▲</span> ${T("İlk {n} takım {lig}'e yükselir", { n: zones.up, lig: trStored(zones.upName) })}` : "",
+    zones.down ? `<span class="zl-down">▼</span> ${T("Son {n} takım {lig}'e düşer", { n: zones.down, lig: trStored(zones.downName) })}` : "",
+  ].filter(Boolean).join("<br>")}</div>` : "";
   const drivers = teamList.flatMap((t) => (t.drivers || []).map((d) => ({ ...d, team: t })))
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
   const mine = ME.team ? ME.team.id : null;
   return `
     <div class="tabs-2">
       <div><h3>${T("Takımlar")}</h3><table class="mini clickable">
-        ${teams.map((t, i) => `<tr class="${t.id === mine ? "me" : ""}" data-team="${t.id}" title="${T("Takım sayfasını aç")}">
+        ${teams.map((t, i) => `<tr class="${t.id === mine ? "me" : ""} ${zoneOf(i)}" data-team="${t.id}" title="${T("Takım sayfasını aç")}">
           <td>${i + 1}</td>
           <td><span class="dot" style="background:${esc(t.color)}"></span>${esc(t.name)}
             <div class="small muted">${t.owner_id ? "👤 " + esc(t.profiles ? t.profiles.username : T("oyuncu")) : "🤖 " + T("bot")}</div></td>
           <td class="num">${t.points}</td></tr>`).join("")}
-      </table></div>
+      </table>${legend}</div>
       <div><h3>${T("Pilotlar")}</h3><table class="mini clickable">
         ${drivers.map((d, i) => `<tr class="${d.team.id === mine ? "me" : ""}" data-team="${d.team.id}">
           <td>${i + 1}</td><td><span class="dot" style="background:${esc(d.team.color)}"></span>${flagOf(d.nationality)} ${esc(d.name)}
@@ -1441,7 +1464,7 @@ async function showLeague(leagueId) {
     const now = Date.now();
     const next = races.find((r) => r.status === "scheduled" && new Date(r.scheduled_at).getTime() > now);
     $("#leagueTitle").innerHTML = `${esc(L.countries.flag)} ${esc(leagueName(L))} <span class="muted small">${T("Sezon {n}", { n: L.seasons.number })}</span>`;
-    $("#leagueStandings").innerHTML = standingsHtml(teams);
+    $("#leagueStandings").innerHTML = standingsHtml(teams, await leagueZones(L).catch(() => ({})));
     $("#leagueCalendar").innerHTML = calendarHtml(races, next && next.id);
     currentLeagueId = leagueId;
     leagueBack = backTo === "teamPage" || !backTo ? "leagues" : backTo;

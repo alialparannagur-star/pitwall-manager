@@ -97,6 +97,11 @@ table.mini { width: 100%; border-collapse: collapse; }
 table.mini td { padding: 5px 6px; border-bottom: 1px solid var(--line); }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.me td { background: var(--me-bg); font-weight: 700; }
+tr.zone-up td:first-child { box-shadow: inset 3px 0 0 #2f9e44; }
+tr.zone-down td:first-child { box-shadow: inset 3px 0 0 #e03131; }
+.zone-legend { margin-top: 8px; line-height: 1.5; }
+.zl-up { color: #2f9e44; font-weight: 700; } .zl-down { color: #e03131; font-weight: 700; }
+.trophy.promoted { border-color: #2f9e44; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
 /* Yarış */

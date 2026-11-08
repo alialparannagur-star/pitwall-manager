@@ -160,6 +160,12 @@
         .select("id, name, tier, country_code, countries(name, flag), teams(id, name, color, points, owner_id)")
         .eq("season_id", seasonId));
     },
+    async leagueExists(seasonId, country, tier) {
+      const r = await db.from("leagues").select("id", { count: "exact", head: true })
+        .eq("season_id", seasonId).eq("country_code", country).eq("tier", tier);
+      if (r.error) throw r.error;
+      return (r.count || 0) > 0;
+    },
     async league(leagueId) {
       return must(await db.from("leagues")
         .select("id, name, tier, country_code, season_id, countries(name, flag), seasons(number)")

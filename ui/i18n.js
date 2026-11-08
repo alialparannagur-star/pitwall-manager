@@ -283,6 +283,8 @@
     "📨 Arkadaşını davet et": "📨 Invite a friend",
     "{team} takımıyla PitWall Manager'da yarışıyorum: ücretsiz bir çevrim içi yarış menajerliği oyunu. Sen de gel, aynı ülkenin liginde kapışalım! 🏁": "I'm racing with {team} in PitWall Manager, a free online racing manager game. Join me and let's battle in the same country's league! 🏁",
     "📤 Sonucu paylaş": "📤 Share result",
+    "İlk {n} takım {lig}'e yükselir": "Top {n} teams go up to {lig}",
+    "Son {n} takım {lig}'e düşer": "Bottom {n} teams go down to {lig}",
     "{gp} sonucu · {team}": "{gp} result · {team}",
     "PitWall Manager'da kendi yarış takımımı yönetiyorum. Sen de gel:": "I run my own racing team in PitWall Manager. Come join:",
     "Çıkış": "Log out", "Açık temaya geç": "Switch to light theme", "Koyu temaya geç": "Switch to dark theme", "Yükleniyor…": "Loading…", "Bekle…": "Please wait…", "Sil": "Delete", "Vazgeç": "Cancel",
@@ -530,6 +532,7 @@
     if ((m = s.match(/^(.+) (\d+)\. Lig$/))) return `${cEN(m[1])} · Division ${m[2]}`;
     if ((m = s.match(/^(🏆|🥈|🥉|🌍) (Dünya Şampiyonu|Dünya İkincisi|Dünya Üçüncüsü|Dünya Finalisti) · Sezon (\d+)$/)))
       return `${m[1]} ${{ "Dünya Şampiyonu": "World Champion", "Dünya İkincisi": "World Runner-up", "Dünya Üçüncüsü": "World Third Place", "Dünya Finalisti": "World Finalist" }[m[2]]} · Season ${m[3]}`;
+    if ((m = s.match(/^⬆️ (.+) (\d+)\. Lig'e yükseldi · Sezon (\d+)$/))) return `⬆️ Promoted to ${cEN(m[1])} Division ${m[2]} · Season ${m[3]}`;
     if ((m = s.match(/^🏅 (.+) (\d+)\. Lig Şampiyonu · Sezon (\d+)$/))) return `🏅 ${cEN(m[1])} Division ${m[2]} Champion · Season ${m[3]}`;
     return s;
   }
