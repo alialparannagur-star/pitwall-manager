@@ -51,6 +51,34 @@ async function busy(btn, fn) {
   finally { btn.disabled = false; btn.textContent = old; }
 }
 
+/* ---------- PAYLAŞ / DAVET ---------- */
+// Davet linkiyle gelen ülkeyi kayıt sonrası katılım ekranına taşı (onay maili linki parametreyi kaybettiği için saklıyoruz)
+(() => {
+  try {
+    const u = new URL(location.href);
+    const cc = (u.searchParams.get("ulke") || "").toUpperCase();
+    if (/^[A-Z]{2}$/.test(cc)) {
+      localStorage.setItem("pitwall_invite_cc", cc);
+      u.searchParams.delete("ulke");
+      history.replaceState(null, "", u.pathname + u.search + u.hash);
+    }
+  } catch (e) {}
+})();
+const SITE_BASE = location.origin + location.pathname.replace(/[^/]*$/, "");
+function inviteLink() {
+  const cc = ME.league && ME.league.country_code;
+  return SITE_BASE + (cc ? "?ulke=" + encodeURIComponent(cc) : "");
+}
+async function shareOut(text, url) {
+  if (navigator.share) {
+    try { await navigator.share({ title: "PitWall Manager", text, url }); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  const full = text + "\n" + url;
+  try { await navigator.clipboard.writeText(full); toast(T("Kopyalandı! WhatsApp'a ya da istediğin yere yapıştırabilirsin.")); }
+  catch (e) { window.open("https://wa.me/?text=" + encodeURIComponent(full), "_blank", "noopener"); }
+}
+
 /* ---------- AÇILIŞ ---------- */
 // Dil düğmesi: şu anki dilin tersini gösterir
 document.documentElement.lang = PW_I18N.lang;
@@ -698,6 +726,9 @@ async function showJoin() {
     sel.innerHTML = `<option value="">${T("Ülkeni seç…")}</option>` +
       list.slice().sort((a, b) => countryName(a.code, a.name).localeCompare(countryName(b.code, b.name), LOCALE())).map((c) => `<option value="${esc(c.code)}">${esc(c.flag)} ${esc(countryName(c.code, c.name))}</option>`).join("");
     if (list.some((c) => c.code === "TR")) sel.value = "TR";
+    let inv = null;
+    try { inv = localStorage.getItem("pitwall_invite_cc"); } catch (e) {}
+    if (inv && list.some((c) => c.code === inv)) sel.value = inv;
   }
   show("join");
 }
@@ -748,7 +779,8 @@ function showHub() {
   $("#hubTeam").style.color = t.color;
   $("#hubLeague").textContent = `${L.countries.flag} ${leagueName(L)} · ${T("Sezon {n}", { n: L.seasons.number })}`;
   $("#hubMoney").innerHTML = `${money(t.money)}<div class="small muted" style="font-weight:400">${T("Pilot maaşları: {x} / yarış", { x: money((t.drivers || []).reduce((n, d) => n + (d.salary || 0), 0)) })}</div>`;
-  $("#hubCar").innerHTML = carStatsHtml(t);
+  $("#hubCar").innerHTML = carStatsHtml(t) + `<div class="btn-row"><button class="btn" id="inviteBtn">${T("📨 Arkadaşını davet et")}</button></div>`;
+  $("#inviteBtn").onclick = () => shareOut(T("{team} takımıyla PitWall Manager'da yarışıyorum: ücretsiz bir çevrim içi yarış menajerliği oyunu. Sen de gel, aynı ülkenin liginde kapışalım! 🏁", { team: t.name }), inviteLink());
   const unspent = (ME.team.drivers || []).reduce((n, d) => n + (d.dev_points || 0), 0);
   $("#goPilotsBtn").innerHTML = `👤 ${T("Pilotlar")}${unspent ? ` <span class="badge">${unspent}</span>` : ""}`;
   renderNextRace();
@@ -787,7 +819,7 @@ function renderLastRace() {
   const r = done[done.length - 1];
   const tr = TRACK[r.track_id];
   $("#lastRace").innerHTML = `<h2>${tr.flag} ${trackName(tr)} <span class="muted small">${esc(raceLabel(r))}</span></h2><div id="lastRaceInfo" class="muted">${T("Yükleniyor…")}</div>
-    <div class="btn-row"><button class="btn primary" data-watch="${r.id}">${T("▶ Yarışı izle")}</button></div>`;
+    <div class="btn-row"><button class="btn primary" data-watch="${r.id}">${T("▶ Yarışı izle")}</button><button class="btn hidden" id="shareRaceBtn">${T("📤 Sonucu paylaş")}</button></div>`;
   api.raceSummary(r.id, ME.team.id).then(({ results, team }) => {
     const el = $("#lastRaceInfo");
     if (!el) return;
@@ -799,6 +831,17 @@ function renderLastRace() {
       const move = gain > 0 ? ` <span class="good-text">▲${gain}</span>` : gain < 0 ? ` <span class="bad-text">▼${-gain}</span>` : "";
       return `${esc(d.name)}: ${x.grid ? `<span class="muted small">${T("Başlangıç P{n}", { n: x.grid })} →</span> ` : ""}<b>${x.dnf ? "DNF" : "P" + x.pos}</b>${move}${x.points ? ` (+${x.points})` : ""}`;
     }).filter(Boolean);
+    const lines = drivers.map((d) => {
+      const x = results.find((y) => y.driver_id === d.id);
+      if (!x) return "";
+      const gain = x.grid && !x.dnf ? x.grid - x.pos : 0;
+      return `• ${d.name}: ${x.grid ? "P" + x.grid + " → " : ""}${x.dnf ? "DNF" : "P" + x.pos}${gain > 0 ? " ▲" + gain : gain < 0 ? " ▼" + -gain : ""}`;
+    }).filter(Boolean);
+    const sb = $("#shareRaceBtn");
+    if (sb && lines.length) {
+      sb.classList.remove("hidden");
+      sb.onclick = () => shareOut(`🏁 ${T("{gp} sonucu · {team}", { gp: `${tr.flag} ${trackName(tr)}`, team: ME.team.name })}\n${lines.join("\n")}\n${T("PitWall Manager'da kendi yarış takımımı yönetiyorum. Sen de gel:")}`, inviteLink());
+    }
     el.innerHTML = `${parts.join(" · ")}${team ? `<div class="money" style="font-size:16px;margin:6px 0 0">${T("+{x} kazandın", { x: money(team.prize) })}${team.sponsor ? ` <span class="small" style="font-weight:400">${T("sponsor")} +${money(team.sponsor)}</span>` : ""}${team.salaries ? ` <span class="muted small" style="font-weight:400">(${T("maaşlar")} −${money(team.salaries)})</span>` : ""}</div>` : ""}`;
   }).catch(() => {});
 }
