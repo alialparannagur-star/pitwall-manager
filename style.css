@@ -501,3 +501,12 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
 .push-card { position: relative; }
 .push-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
 .push-btns { display: flex; gap: 6px; }
+
+/* Sıralama seansı */
+.quali-panel { margin-bottom: 16px; }
+.quali-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.quali-head #qualiNext { margin-left: auto; }
+.quali-table tr.q-out td { opacity: .55; }
+@media (max-width: 700px) { .quali-table .q-tm, .quali-table .q-note { display: none; } .quali-head #qualiNext { margin-left: 0; } }
+.quali-table tr.q-cut td { text-align: center; font-size: 12px; color: var(--bad, #e03131); border-top: 2px dashed var(--bad, #e03131); padding: 2px; background: transparent !important; }
+.q-mode { font-size: 13px; }

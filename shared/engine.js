@@ -149,7 +149,7 @@
         acc += caps[i] / sum * track.laps;
         stops.push({ lap: Math.max(1, Math.min(track.laps - 1, Math.round(acc))), tyre: seq[i + 1] });
       }
-      const plan = { start: seq[0], stops, mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal", scPit: true };
+      const plan = { start: seq[0], stops, mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal", scPit: true, quali: "normal" };
       const est = estimatePlan(track, car, plan, drv);
       if (est.maxWear <= 92) out.push({ plan, est, label: seq.join(" → ") });
     });
@@ -167,12 +167,14 @@
     const q = rng();
     plan.wetCall = q < 0.25 ? "early" : q < 0.75 ? "normal" : "late";
     plan.scPit = rng() < 0.8;
+    const qq = rng();
+    plan.quali = qq < 0.2 ? "safe" : qq < 0.8 ? "normal" : "limit";
     return plan;
   }
 
   // Kullanıcıdan gelen planı güvenli hale getir (sunucu da bunu kullanır)
   function normalizePlan(plan, track) {
-    const p = Object.assign({ start: "M", stops: [], mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal", scPit: true }, plan && typeof plan === "object" ? plan : {});
+    const p = Object.assign({ start: "M", stops: [], mode: "normal", pushEnd: true, wearLimit: 85, wetCall: "normal", scPit: true, quali: "normal" }, plan && typeof plan === "object" ? plan : {});
     const dry = (x) => D.DRY.includes(x);
     p.stops = (Array.isArray(p.stops) ? p.stops : []).filter((s) => s && dry(s.tyre))
       .map((s) => ({ lap: Math.max(1, Math.min(track.laps - 1, Math.round(+s.lap || 1))), tyre: s.tyre }))
@@ -180,10 +182,11 @@
     if (!dry(p.start)) p.start = "M";
     if (!D.WET_CALLS[p.wetCall]) p.wetCall = "normal";
     p.scPit = p.scPit !== false;
+    if (!["safe", "normal", "limit"].includes(p.quali)) p.quali = "normal";
     if (!D.MODES[p.mode]) p.mode = "normal";
     if (![75, 85, 95].includes(p.wearLimit)) p.wearLimit = 85;
     p.pushEnd = !!p.pushEnd;
-    return { start: p.start, stops: p.stops, mode: p.mode, pushEnd: p.pushEnd, wearLimit: p.wearLimit, wetCall: p.wetCall, scPit: p.scPit };
+    return { start: p.start, stops: p.stops, mode: p.mode, pushEnd: p.pushEnd, wearLimit: p.wearLimit, wetCall: p.wetCall, scPit: p.scPit, quali: p.quali };
   }
 
   /* ---------- YARIŞ SİMÜLASYONU ---------- */
@@ -211,12 +214,41 @@
       if (W[0] >= c.call.toI) { c.compound = W[0] >= c.call.toW ? "W" : "I"; c.used.add(c.compound); }
     });
 
-    // Sıralama turları
+    // ---------- Sıralama seansı: Q1 → Q2 → Q3 (elemeli) ----------
+    // Yaklaşım: güvenli (yavaş ama hatasız) / normal / limitte (hızlı ama hata riski yüksek)
+    const QA = { safe: { gain: 0.05, noise: 0.7, err: 0 }, normal: { gain: 0, noise: 1, err: 0.035 }, limit: { gain: -0.18, noise: 1.15, err: 0.11 } };
+    const qWet = W[0];
     cars.forEach((c) => {
-      c.quali = track.baseLap - 1.5 + (100 - c.perf) * 0.045 + (100 - c.a.pace) * 0.012 + c.form + gauss(rng) * 0.15 * (1 + (100 - c.a.consistency) / 60) * (1 + W[0] * 2);
+      c.qBase = track.baseLap - 1.5 + (100 - c.perf) * 0.045 + (100 - c.a.pace) * 0.012 + c.form;
+      c.q = [null, null, null]; c.qErr = [0, 0, 0];
     });
-    cars.sort((a, b) => a.quali - b.quali);
-    cars.forEach((c, i) => { c.grid = i + 1; c.total = i * 0.25; });
+    const qLap = (c, s) => {
+      const qa = QA[c.plan.quali] || QA.normal;
+      const consF = 1 + (100 - c.a.consistency) / 60;
+      let t = c.qBase + qa.gain - s * 0.12                       // pist her seansta biraz daha hızlanır
+        + gauss(rng) * 0.15 * consF * qa.noise * (1 + qWet * 2) + qWet * 4;
+      const errP = qa.err * Math.max(0.5, 1 + (60 - c.a.consistency) / 80) * (1 + qWet * 2);
+      if (rng() < errP) { t += 1.2 + rng() * 2.3; c.qErr[s] = 1; }   // tur bozuldu
+      c.q[s] = t;
+      return t;
+    };
+    const n = cars.length;
+    const q3n = Math.min(10, n), q2n = Math.min(n, q3n + Math.floor((n - q3n) / 2));
+    let field = cars.slice();
+    field.forEach((c) => qLap(c, 0));
+    field.sort((a, b) => a.q[0] - b.q[0]);
+    const outQ1 = field.slice(q2n);
+    field = field.slice(0, q2n);
+    field.forEach((c) => qLap(c, 1));
+    field.sort((a, b) => a.q[1] - b.q[1]);
+    const outQ2 = field.slice(q3n);
+    field = field.slice(0, q3n);
+    field.forEach((c) => qLap(c, 2));
+    field.sort((a, b) => a.q[2] - b.q[2]);
+    const gridOrder = field.concat(outQ2, outQ1);
+    gridOrder.forEach((c, i) => { c.grid = i + 1; c.quali = c.q[2] != null ? c.q[2] : c.q[1] != null ? c.q[1] : c.q[0]; });
+    cars.sort((a, b) => a.grid - b.grid);
+    cars.forEach((c, i) => { c.total = i * 0.25; });
     ev(0, `🏁 Pole pozisyonu: ${cars[0].name}`, [cars[0].id], "pole");
     if (W[0] >= 0.15) ev(0, `🌧️ Yarış ıslak pistte başlıyor`, [], "wet_start");
 
@@ -414,7 +446,8 @@
       points: !c.dnf && i < D.POINTS.length ? D.POINTS[i] : 0,
     }));
     if (laps.length) laps[laps.length - 1].cars.forEach((s) => { const c = cars.find((x) => x.id === s.id); s.t = +c.total.toFixed(3); });
-    return { seed, trackId: track.id, results, laps, events, weather: weather || null };
+    const quali = cars.map((c) => ({ id: c.id, grid: c.grid, q: c.q.map((x) => (x == null ? null : +x.toFixed(3))), err: c.qErr, mode: c.plan.quali || "normal" }));
+    return { seed, trackId: track.id, results, laps, events, weather: weather || null, quali };
   }
 
   g.PW_ENGINE = { rngFrom, hashSeed, gauss, carPerf, driverAttrs, wearRate, tyrePace, forecast, rollWeather, wetSeries, planStints, estimatePlan, suggestStrategies, autoStrategy, normalizePlan, simulateRace };

@@ -43,6 +43,7 @@
       events: rep.events.map((e) => ({ lap: e[0], text: e[1], ids: e[2], kind: e[3], params: e[4] || null })),
       wx: rep.wx || null,
       sc: rep.sc || null,
+      q: rep.q || null,
     };
   }
 
@@ -64,6 +65,50 @@
     setSpeed(view.speed);
     render();
     showScreen("race");
+    // Sıralama verisi varsa izlemeye sıralamayla başla
+    $("#qualiBtn").classList.toggle("hidden", !R.q);
+    if (R.q) showQuali(0); else hideQuali();
+  }
+
+  /* ---------- Sıralama seansı (Q1 / Q2 / Q3) ---------- */
+  const QMODE = { s: ["🛡️", "Güvenli"], n: ["⚖️", "Normal"], l: ["🔥", "Limitte"] };
+  function showQuali(stage) {
+    stop();
+    const { R, mine } = S;
+    const rows = R.q.map((q, i) => (q ? { i, e: R.entries[i], t: q[stage], err: (q[3] >> stage) & 1, mode: q[4], grid: S.grid[i] } : null))
+      .filter((x) => x && x.t != null).sort((a, b) => a.t - b.t);
+    const n = R.q.filter(Boolean).length;
+    const q3n = Math.min(10, n), q2n = Math.min(n, q3n + Math.floor((n - q3n) / 2));
+    const cut = stage === 0 ? q2n : stage === 1 ? q3n : 0;
+    const best = rows.length ? rows[0].t : 0;
+    $("#qualiInfo").textContent = stage === 0 ? T("Q1: {n} pilot · son {k} elenir", { n: rows.length, k: rows.length - q2n })
+      : stage === 1 ? T("Q2: {n} pilot · son {k} elenir", { n: rows.length, k: rows.length - q3n })
+      : T("Q3: ilk {n} pole için yarışıyor", { n: rows.length });
+    $("#qualiTable").innerHTML = `<tr><th>#</th><th>${T("Pilot")}</th><th class="q-tm">${T("Takım")}</th><th class="num">${T("Tur")}</th><th class="num">${T("Fark")}</th><th class="q-note"></th></tr>` +
+      rows.map((x, k) => {
+        const out = cut && k >= cut;
+        const m = QMODE[x.mode] || QMODE.n;
+        return `${cut && k === cut ? `<tr class="q-cut"><td colspan="6">${T("— eleme çizgisi —")}</td></tr>` : ""}
+        <tr class="${mine.has(x.i) ? "player" : ""} ${out ? "q-out" : ""}">
+          <td class="pos">${k + 1}</td>
+          <td>${flag(x.e)}${esc(x.e.name)} <span class="q-mode" title="${T(m[1])}">${m[0]}</span>${x.err ? ` <span title="${T("Turunu bozdu")}">😬</span>` : ""}</td>
+          <td class="q-tm"><span class="dot" style="background:${x.e.color}"></span>${esc(x.e.teamName)}</td>
+          <td class="num">${fmtLap(x.t)}</td>
+          <td class="num muted">${k === 0 ? (stage === 2 ? "🏁 POLE" : "") : "+" + (x.t - best).toFixed(3)}</td>
+          <td class="q-note small ${out ? "bad-text" : ""}">${out ? T("Elendi · {n}. sıradan başlayacak", { n: x.grid }) : ""}</td>
+        </tr>`;
+      }).join("");
+    document.querySelectorAll("#qualiTabs [data-qs]").forEach((b) => b.classList.toggle("active", +b.dataset.qs === stage));
+    $("#qualiNext").textContent = stage < 2 ? T("Q{n} →", { n: stage + 2 }) : T("🏁 Yarışa geç");
+    $("#qualiNext").onclick = () => (stage < 2 ? showQuali(stage + 1) : hideQuali());
+    $("#qualiPanel").classList.remove("hidden");
+    $("#raceGrid").classList.add("hidden");
+    $("#lapInfo").innerHTML = `⏱️ ${T("Sıralama turları")}`;
+  }
+  function hideQuali() {
+    $("#qualiPanel").classList.add("hidden");
+    $("#raceGrid").classList.remove("hidden");
+    render();
   }
 
   function showScreen(id) {
@@ -170,12 +215,14 @@
 
   // Butonlar (sayfa yüklenince bir kez bağlanır)
   function wire() {
-    $("#playBtn").onclick = togglePlay;
+    $("#playBtn").onclick = () => { if (!$("#qualiPanel").classList.contains("hidden")) hideQuali(); togglePlay(); };
+    $("#qualiBtn").onclick = () => S && S.R.q && showQuali(0);
+    document.querySelectorAll("#qualiTabs [data-qs]").forEach((b) => (b.onclick = () => showQuali(+b.dataset.qs)));
     $("#toEndBtn").onclick = () => {
       if (view.i >= lastIdx()) { showResults(); return; }
       stop(); view.i = lastIdx(); render(); $("#playBtn").textContent = T("▶ Baştan izle");
     };
-    $("#scrub").oninput = (e) => { view.i = +e.target.value; render(); };
+    $("#scrub").oninput = (e) => { if (!$("#qualiPanel").classList.contains("hidden")) hideQuali(); view.i = +e.target.value; render(); };
     $("#onlyMine").onchange = render;
     document.querySelectorAll("#race [data-speed]").forEach((b) => (b.onclick = () => setSpeed(+b.dataset.speed)));
     $("#raceBack").onclick = () => { stop(); S.onBack && S.onBack(); };

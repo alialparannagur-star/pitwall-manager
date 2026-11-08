@@ -138,7 +138,7 @@
     // Hub'daki "son yarış" kartı için küçük özet
     async raceSummary(raceId, teamId) {
       const [res, tr] = await Promise.all([
-        db.from("race_results").select("driver_id, pos, points, dnf").eq("race_id", raceId).eq("team_id", teamId),
+        db.from("race_results").select("driver_id, pos, grid, points, dnf").eq("race_id", raceId).eq("team_id", teamId),
         db.from("race_team_results").select("points, prize, salaries, sponsor").eq("race_id", raceId).eq("team_id", teamId).maybeSingle(),
       ]);
       return { results: must(res), team: must(tr) };

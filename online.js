@@ -541,7 +541,8 @@ function strategyTour() {
     { el: label(2), title: T("Plan önizleme"), text: T("Mühendisler planının ne kadar iyi olduğunu tahmin eder ve lastiklerin ne kadar aşınacağını gösterir.") },
     { el: label(3), title: T("Sürüş modu"), text: T("Atak daha hızlı ama lastiği daha çok yıpratır; Koru tam tersi. Güvenlik aracı fırsatını da buradan aç ya da kapat.") },
     { el: label(5), title: T("Yağmur tepkisi"), text: T("Yağmur gelirse mühendislerin ne zaman ara ya da yağmur lastiğine geçeceğini seç.") },
-    { el: label(6), title: T("Hazır öneriler"), text: T("Emin değilsen mühendislerin önerilerinden birini seç, tek tıkla plana yazılır.") },
+    { el: label(6), title: T("Sıralama turu"), text: T("Yarıştan önce sıralama turları atılır ve grid buna göre dizilir. Güvenli mi gideceksin, yoksa limitte risk mi alacaksın?") },
+    { el: label(7), title: T("Hazır öneriler"), text: T("Emin değilsen mühendislerin önerilerinden birini seç, tek tıkla plana yazılır.") },
     { el: "#saveStratBtn", title: T("Kaydetmeyi unutma!"), text: T("Değişiklikler ancak kaydedince geçerli olur. Yarış başlayana kadar istediğin kadar değiştirebilirsin."), doneLabel: T("Anladım 👍") },
   ], { onDone: () => tourMark("strat") });
 }
@@ -793,7 +794,10 @@ function renderLastRace() {
     const drivers = ME.team.drivers.slice().sort((a, b) => a.seat - b.seat);
     const parts = drivers.map((d) => {
       const x = results.find((y) => y.driver_id === d.id);
-      return x ? `${esc(d.name)}: <b>${x.dnf ? "DNF" : "P" + x.pos}</b>${x.points ? ` (+${x.points})` : ""}` : "";
+      if (!x) return "";
+      const gain = x.grid && !x.dnf ? x.grid - x.pos : 0;
+      const move = gain > 0 ? ` <span class="good-text">▲${gain}</span>` : gain < 0 ? ` <span class="bad-text">▼${-gain}</span>` : "";
+      return `${esc(d.name)}: ${x.grid ? `<span class="muted small">${T("Başlangıç P{n}", { n: x.grid })} →</span> ` : ""}<b>${x.dnf ? "DNF" : "P" + x.pos}</b>${move}${x.points ? ` (+${x.points})` : ""}`;
     }).filter(Boolean);
     el.innerHTML = `${parts.join(" · ")}${team ? `<div class="money" style="font-size:16px;margin:6px 0 0">${T("+{x} kazandın", { x: money(team.prize) })}${team.sponsor ? ` <span class="small" style="font-weight:400">${T("sponsor")} +${money(team.sponsor)}</span>` : ""}${team.salaries ? ` <span class="muted small" style="font-weight:400">(${T("maaşlar")} −${money(team.salaries)})</span>` : ""}</div>` : ""}`;
   }).catch(() => {});

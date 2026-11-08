@@ -25,6 +25,11 @@
     return `${icon} ${T("Yağmur ihtimali")} <b>${pct(Math.round(fc.p * 100))}</b> · ${when} · ${T(fc.heavy ? "şiddetli" : "hafif")}`;
   }
 
+  const QUALI = {
+    safe: ["🛡️", "Güvenli", "Güvenli: hata yapmaz ama biraz yavaş kalır. Zaten önde olan güçlü takımlar için iyi."],
+    normal: ["⚖️", "Normal", "Normal: dengeli tur; küçük bir hata riski var."],
+    limit: ["🔥", "Limitte", "Limitte: daha hızlı tur, ama yaklaşık dörtte bir ihtimalle turu bozar ve geriden başlar. Kaybedecek bir şeyi olmayan geri takımlar için iyi bir kumar."],
+  };
   const WET_HELP = {
     early: "Erken: ilk damlalarda ara lastiğe geçer, pist kururken kaygan lastiğe de erken döner. Yağmur gerçekten gelirse kazandırır; sadece çiseleyip geçerse boşa pit stop yapmış olursun.",
     normal: "Normal: pist belirgin şekilde ıslanınca geçer. Çoğu durumda güvenli orta yol.",
@@ -82,6 +87,10 @@
         <div class="row">${Object.entries(WET_CALLS).map(([k, info]) => `<button class="chip ${plan.wetCall === k ? "active" : ""}" data-wet="${k}">${T(info.name)}</button>`).join("")}</div>
         <div class="small muted wet-help">${T(WET_HELP[plan.wetCall] || WET_HELP.normal)}</div>
 
+        <div class="dp-label">${T("Sıralama turu: ne kadar risk alınsın?")}</div>
+        <div class="row">${Object.entries(QUALI).map(([k, q]) => `<button class="chip ${plan.quali === k ? "active" : ""}" data-quali="${k}">${q[0]} ${T(q[1])}</button>`).join("")}</div>
+        <div class="small muted wet-help">${T((QUALI[plan.quali] || QUALI.normal)[2])}</div>
+
         <div class="dp-label">${T("Mühendislerin önerileri")}</div>
         <div class="sugg">${sugg.map((o, i) => `
           <button class="chip" data-sugg="${i}">
@@ -103,12 +112,14 @@
           plan.stops.push({ lap: Math.min(tr.laps - 1, Math.round((last + tr.laps) / 2)), tyre: plan.start === "H" ? "M" : "H" });
         } else if (b.dataset.mode) {
           plan.mode = b.dataset.mode;
+        } else if (b.dataset.quali) {
+          plan.quali = b.dataset.quali;
         } else if (b.dataset.wet) {
           plan.wetCall = b.dataset.wet;
         } else if (b.dataset.limit) {
           plan.wearLimit = +b.dataset.limit;
         } else if (b.dataset.sugg) {
-          plans[k] = Object.assign(clone(sugg[+b.dataset.sugg].plan), { wetCall: plan.wetCall, scPit: plan.scPit });
+          plans[k] = Object.assign(clone(sugg[+b.dataset.sugg].plan), { wetCall: plan.wetCall, scPit: plan.scPit, quali: plan.quali });
         } else return;
         rerender();
       });
