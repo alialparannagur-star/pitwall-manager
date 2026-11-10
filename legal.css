@@ -26,3 +26,7 @@
 .terms-note { font-size: 13px; color: var(--muted); margin: 6px 0 0; line-height: 1.45; }
 .danger-btn { background: #c92a2a !important; color: #fff !important; border-color: #c92a2a !important; }
 #deleteConfirm { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font: inherit; margin: 8px 0; }
+/* Formdaki genel "tam genişlik" kuralı onay kutusunu bozmasın */
+form label.terms-check { display: flex; font-weight: 400; font-size: 14px; }
+form .terms-check input[type="checkbox"] { width: 18px; height: 18px; min-width: 18px; margin: 2px 0 0; padding: 0; flex: 0 0 18px; accent-color: var(--accent, #E5484D); }
+form .terms-check span { flex: 1 1 auto; min-width: 0; }

@@ -11,7 +11,7 @@ const SAVE_KEY = "pitwall_lab_v2";
 
 let S = null;        // kayıtlı oyun durumu
 let current = null;  // aktif yarış hafta sonu
-const replay = { i: 0, timer: null, speed: 400 };
+const replay = { i: 0, timer: null, speed: 400, rt: 0, last: 0 };
 
 /* ---------- Yardımcılar ---------- */
 const $ = (sel) => document.querySelector(sel);
@@ -320,6 +320,15 @@ function runRace() {
     return { ...pitCount };
   });
   current.grid = Object.fromEntries(result.results.map((r) => [r.id, r.grid]));
+  // Pist haritası (ui/trackmap.js)
+  current.map = window.PW_RACEMAP && $("#trackMap") ? PW_RACEMAP.create($("#trackMap"), {
+    trackId: tr.id,
+    laps: result.laps.map((snap) => entries.map((e) => snap.cars.find((c) => c.id === e.id))),
+    cars: entries.map((e) => ({ color: e.color, name: e.name, team: e.teamName })),
+    mine: new Set(entries.map((e, i) => (e.teamId === S.myTeam ? i : -1)).filter((i) => i >= 0)),
+    sc: result.laps.map((snap) => snap.sc || 0), wx: result.laps.map((snap) => snap.w || 0),
+  }) : null;
+  replay.rt = 0;
 
   $("#raceTitle").textContent = `${tr.flag} ${tr.name}`;
   $("#scrub").max = tr.laps;
@@ -331,22 +340,35 @@ function runRace() {
   show("race");
 }
 
-function stopReplay() { clearInterval(replay.timer); replay.timer = null; }
+function stopReplay() { if (replay.timer) cancelAnimationFrame(replay.timer); replay.timer = null; }
+const mapEnd = () => (current.map ? current.map.model.endT : 0);
+function drawMap() { if (current.map) current.map.draw(replay.rt, replay.i); }
 function togglePlay() {
   if (replay.timer) { stopReplay(); $("#playBtn").textContent = "▶ İzle"; return; }
-  if (replay.i >= current.track.laps) replay.i = 0;
-  replay.timer = setInterval(stepReplay, replay.speed);
+  if (replay.i >= current.track.laps) { replay.i = 0; replay.rt = 0; renderReplay(); }
+  replay.last = performance.now();
+  replay.timer = requestAnimationFrame(frame);
   $("#playBtn").textContent = "⏸ Duraklat";
 }
-function stepReplay() {
-  replay.i++;
-  renderReplay();
-  if (replay.i >= current.track.laps) { stopReplay(); $("#playBtn").textContent = "▶ Baştan izle"; }
+// Zaman tabanlı oynatma: 1x'te bir tur ≈ 3 sn
+function frame(now) {
+  const dt = Math.min(100, now - replay.last); replay.last = now;
+  if (!current.map) { // harita yoksa eski tur tur oynatma
+    replay.rt += dt; if (replay.rt < replay.speed) { replay.timer = requestAnimationFrame(frame); return; }
+    replay.rt = 0; replay.i++; renderReplay();
+    if (replay.i >= current.track.laps) { stopReplay(); $("#playBtn").textContent = "▶ Baştan izle"; return; }
+    replay.timer = requestAnimationFrame(frame); return;
+  }
+  const M = current.map.model;
+  replay.rt = Math.min(M.endT, replay.rt + (dt / 1000) * (M.medLap / (replay.speed * 3 / 1000)));
+  const k = replay.rt >= M.endT ? current.track.laps : Math.min(current.track.laps, current.map.lapAt(replay.rt));
+  if (k !== replay.i) { replay.i = k; renderReplay(); } else drawMap();
+  if (replay.rt >= M.endT) { stopReplay(); $("#playBtn").textContent = "▶ Baştan izle"; return; }
+  replay.timer = requestAnimationFrame(frame);
 }
 function setSpeed(ms) {
   replay.speed = ms;
   document.querySelectorAll("[data-speed]").forEach((b) => b.classList.toggle("active", +b.dataset.speed === ms));
-  if (replay.timer) { clearInterval(replay.timer); replay.timer = setInterval(stepReplay, ms); }
 }
 
 function renderReplay() {
@@ -406,6 +428,7 @@ function renderReplay() {
   }).join("");
 
   $("#toEndBtn").textContent = last ? "Sonuçları gör →" : "Sonucu göster ⏭";
+  drawMap();
 }
 
 /* ---------- SONUÇ ---------- */
@@ -459,9 +482,13 @@ $("#runRaceBtn").onclick = runRace;
 $("#playBtn").onclick = togglePlay;
 $("#toEndBtn").onclick = () => {
   if (replay.i >= current.track.laps) { showResults(); return; }
-  stopReplay(); replay.i = current.track.laps; renderReplay(); $("#playBtn").textContent = "▶ Baştan izle";
+  stopReplay(); replay.i = current.track.laps; replay.rt = mapEnd(); renderReplay(); $("#playBtn").textContent = "▶ Baştan izle";
 };
-$("#scrub").oninput = (e) => { replay.i = +e.target.value; renderReplay(); };
+$("#scrub").oninput = (e) => {
+  replay.i = +e.target.value;
+  replay.rt = !current.map ? 0 : replay.i >= current.track.laps ? mapEnd() : current.map.model.leaderT[replay.i] || 0;
+  renderReplay();
+};
 $("#onlyMine").onchange = renderReplay;
 document.querySelectorAll("[data-speed]").forEach((b) => (b.onclick = () => setSpeed(+b.dataset.speed)));
 $("#resContinue").onclick = showHub;

@@ -101,5 +101,111 @@
     return g;
   }
 
+  /* ---------- Yarış haritası: tekrar verisinden arabaları pistte canlandırır ----------
+     PW_RACEMAP.create(svg, { trackId, laps, cars, mine, sc, wx })
+       laps[k][i] = { t: tur sonu toplam süre, p: pit, d: dnf }  (k=0 grid dizilişi)
+       cars[i]    = { color, name, team }
+     → { model, lapAt(rt), draw(rt, lapIdx) } */
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const escX = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  function createRaceMap(svg, o) {
+    const G = get(o.trackId), laps = o.laps, n = o.cars.length, L = laps.length - 1, mine = o.mine || new Set();
+    // Model
+    const leaderT = [0];
+    for (let k = 1; k <= L; k++) {
+      const alive = laps[k].filter((c) => c && !c.d).map((c) => c.t);
+      leaderT.push(alive.length ? Math.min(...alive) : leaderT[k - 1]);
+    }
+    const ls = [];
+    laps.forEach((row, k) => k > 0 && row.forEach((c) => { if (c && c.l && !c.p && !c.d) ls.push(c.l); }));
+    ls.sort((a, b) => a - b);
+    const medLap = ls.length ? ls[Math.floor(ls.length / 2)] : 90;
+    const cars = [];
+    for (let i = 0; i < n; i++) {
+      const g = Math.round((laps[0][i].t || 0) / 0.25);
+      let dnfLap = null;
+      for (let k = 1; k <= L; k++) if (laps[k][i].d) { dnfLap = k; break; }
+      const h = ((i * 2654435761) >>> 0) / 4294967296, stopFrac = 0.15 + 0.7 * h;
+      const stopTime = dnfLap ? (dnfLap === 1 ? 0 : laps[dnfLap - 1][i].t) + stopFrac * medLap : Infinity;
+      cars.push({ g, dnfLap, stopFrac, stopTime, fin: dnfLap ? null : laps[L][i].t, k: 1 });
+    }
+    const fins = cars.filter((c) => c.fin != null).map((c) => c.fin);
+    const endT = (fins.length ? Math.max(...fins) : leaderT[L]) + medLap * 0.15;
+    const model = { L, leaderT, medLap, cars, endT };
+
+    function lapAt(rt) { let k = 0; while (k + 1 < leaderT.length && leaderT[k + 1] <= rt) k++; return k; }
+    function carPos(i, rt) {
+      const c = cars[i];
+      if (c.dnfLap && rt >= c.stopTime) return { lap: c.dnfLap, f: c.stopFrac, out: true };
+      if (c.fin != null && rt >= c.fin) return { lap: L + 1, f: Math.min(0.1, ((rt - c.fin) / medLap) * 0.5), done: true };
+      let k = Math.max(1, Math.min(c.k, L));
+      while (k > 1 && laps[k - 1][i].t > rt) k--;
+      while (k < L && laps[k][i].t <= rt) k++;
+      c.k = k;
+      const t0 = k === 1 ? 0 : laps[k - 1][i].t, t1 = laps[k][i].t, T = Math.max(0.001, t1 - t0);
+      let f = Math.max(0, (rt - t0) / T);
+      if (k === 1) { const g = c.g * 0.0022; f = f * (1 + g) - g; } // grid dizilişi
+      const cell = laps[k][i];
+      if (cell.p && !cell.d) {
+        // Pit turu: normal hızla gelir, pit yolunda kayıp süre kadar bekler
+        const loss = Math.max(0, T - medLap), norm = T - loss, entry = 1 + G.PIT_FROM, tIn = norm * entry, tt = rt - t0;
+        if (tt < tIn) f = tt / norm;
+        else {
+          const rest = T - tIn, u = (tt - tIn) / rest, hold = loss / rest, a = (1 - hold) / 2;
+          const v = u < a ? (u / a) * 0.5 : u < a + hold ? 0.5 : 0.5 + ((u - a - hold) / Math.max(0.001, a)) * 0.5;
+          const ff = entry + (1 - entry) * v;
+          return { lap: k, f: ff, pit: (ff - 1 - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
+        }
+      }
+      if (k > 1 && laps[k - 1][i].p && f < G.PIT_TO) return { lap: k, f, pit: (f - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
+      return { lap: k, f };
+    }
+    // Çizim
+    svg.setAttribute("viewBox", G.box.join(" "));
+    const [a, b] = G.start, dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len * 2.6, ny = dx / len * 2.6;
+    svg.innerHTML = `<path class="tm-pit" d="${G.pitD}"/><path class="tm-edge" d="${G.d}"/><path class="tm-road" d="${G.d}"/>
+      <line class="tm-start" x1="${a[0] - nx}" y1="${a[1] - ny}" x2="${a[0] + nx}" y2="${a[1] + ny}"/><g class="tm-cars"></g>`;
+    const road = svg.querySelector(".tm-road"), grp = svg.querySelector(".tm-cars");
+    const scDot = document.createElementNS(SVGNS, "g");
+    scDot.setAttribute("class", "tm-sc hidden");
+    scDot.innerHTML = `<rect x="-2.6" y="-1.6" width="5.2" height="3.2" rx="0.8"/><text y="1">SC</text>`;
+    grp.appendChild(scDot);
+    const dots = [];
+    o.cars.map((c, i) => i).sort((x, y) => (mine.has(x) ? 1 : 0) - (mine.has(y) ? 1 : 0)).forEach((i) => {
+      const c = o.cars[i], my = mine.has(i), el = document.createElementNS(SVGNS, "g");
+      el.setAttribute("class", "tm-car" + (my ? " mine" : ""));
+      el.innerHTML = `<circle r="${my ? 2.1 : 1.55}" fill="${escX(c.color)}"/>` +
+        (my ? `<text class="tm-label" x="3" y="-2.4">${escX(String(c.name).split(" ").slice(-1)[0])}</text>` : "") +
+        `<title>${escX(c.name)}${c.team ? " · " + escX(c.team) : ""}</title>`;
+      grp.appendChild(el);
+      dots[i] = el;
+    });
+    function draw(rt, lapIdx) {
+      let lead = null;
+      for (let i = 0; i < n; i++) {
+        const pos = carPos(i, rt);
+        let xy = pos.pit != null ? G.pitAt(Math.max(0, Math.min(1, pos.pit))) : G.at(pos.f);
+        if (pos.lap === 1 && pos.pit == null && pos.f < 0.12) { // iki sıralı start
+          const p0 = G.at(pos.f - 0.002), p1 = G.at(pos.f + 0.002), ddx = p1[0] - p0[0], ddy = p1[1] - p0[1], ln = Math.hypot(ddx, ddy) || 1;
+          const side = (cars[i].g % 2 ? 1 : -1) * 0.95 * (1 - Math.max(0, pos.f) / 0.12);
+          xy = [xy[0] - (ddy / ln) * side, xy[1] + (ddx / ln) * side];
+        }
+        const el = dots[i];
+        el.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`);
+        el.classList.toggle("out", !!pos.out);
+        el.classList.toggle("in-pit", pos.pit != null);
+        if (!pos.out && !pos.done) { const d = pos.lap + pos.f; if (!lead || d > lead.d) lead = { d, f: pos.f }; }
+      }
+      const k = Math.min((lapIdx || 0) + 1, L), scOn = o.sc && o.sc[k] && lead && rt < endT - medLap * 0.15;
+      scDot.classList.toggle("hidden", !scOn);
+      if (scOn) { const xy = G.at(lead.f + 0.03); scDot.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`); }
+      const w = o.wx ? o.wx[Math.min(lapIdx || 0, o.wx.length - 1)] || 0 : 0;
+      road.setAttribute("class", "tm-road" + (w >= 60 ? " vwet" : w >= 22 ? " wet" : w >= 5 ? " damp" : ""));
+    }
+    return { model, lapAt, draw };
+  }
+
   window.PW_TRACKMAP = { get, ids: Object.keys(SHAPES) };
+  window.PW_RACEMAP = { create: createRaceMap };
 })();

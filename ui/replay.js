@@ -30,7 +30,6 @@
   const flag = (e) => (e.nat && window.PW_FLAGS && window.PW_FLAGS[e.nat] ? window.PW_FLAGS[e.nat] + " " : "");
   let S = null; // aktif tekrar
   const view = { i: 0, timer: null, speed: 400, rt: 0, last: 0 };
-  const SVGNS = "http://www.w3.org/2000/svg";
 
   // Sıkıştırılmış veriyi okunur hale getir
   function expand(rep) {
@@ -58,7 +57,6 @@
     const cnt = {};
     const pitsAt = R.laps.map((row) => { row.forEach((c) => { if (c.p) cnt[c.i] = (cnt[c.i] || 0) + 1; }); return { ...cnt }; });
     S = { R, mine, grid, pitsAt, myTeamId, teamResults: teamResults || [], onBack };
-    S.M = buildModel(R);
     buildMap();
 
     $("#raceTitle").textContent = `${R.track.flag} ${trackName(R.track)} · ${replay.title ? "🌍 " + trStored(replay.title) : T("Yarış") + " " + R.round}`;
@@ -151,131 +149,17 @@
     document.querySelectorAll("#race [data-speed]").forEach((b) => b.classList.toggle("active", +b.dataset.speed === ms));
   }
 
-  /* ---------- Pist haritası ---------- */
-  // Tekrar verisinden konum modeli: her aracın her tur sonundaki toplam süresi zaten kayıtlı
-  function buildModel(R) {
-    const n = R.entries.length, L = R.laps.length - 1;
-    const lapsT = []; // laps[k][i].t
-    const leaderT = [0];
-    for (let k = 1; k <= L; k++) {
-      const alive = R.laps[k].filter((c) => !c.d).map((c) => c.t);
-      leaderT.push(alive.length ? Math.min(...alive) : leaderT[k - 1]);
-    }
-    const ls = [];
-    R.laps.forEach((row, k) => k > 0 && row.forEach((c) => { if (c.l && !c.p && !c.d) ls.push(c.l); }));
-    ls.sort((a, b) => a - b);
-    const medLap = ls.length ? ls[Math.floor(ls.length / 2)] : 90;
-    const cars = [];
-    for (let i = 0; i < n; i++) {
-      const g = Math.round((R.laps[0][i].t || 0) / 0.25);
-      let dnfLap = null;
-      for (let k = 1; k <= L; k++) if (R.laps[k][i].d) { dnfLap = k; break; }
-      const h = ((i * 2654435761) >>> 0) / 4294967296;
-      const stopFrac = 0.15 + 0.7 * h;
-      const stopTime = dnfLap ? (dnfLap === 1 ? 0 : R.laps[dnfLap - 1][i].t) + stopFrac * medLap : Infinity;
-      cars.push({ g, dnfLap, stopFrac, stopTime, fin: dnfLap ? null : R.laps[L][i].t, k: 1 });
-    }
-    const fins = cars.filter((c) => c.fin != null).map((c) => c.fin);
-    const endT = (fins.length ? Math.max(...fins) : leaderT[L]) + medLap * 0.15;
-    return { L, leaderT, medLap, cars, endT };
-  }
-  function lapAt(rt) {
-    const lt = S.M.leaderT;
-    let k = 0;
-    while (k + 1 < lt.length && lt[k + 1] <= rt) k++;
-    return rt >= S.M.endT ? lastIdx() : k;
-  }
-  // Bir aracın yarış saatine göre konumu: { lap, f (tur içi kesir), pit (pit yolu kesri) | null, out }
-  function carPos(i, rt) {
-    const { R, M } = S, c = M.cars[i], G = PW_TRACKMAP.get(R.track.id);
-    if (c.dnfLap && rt >= c.stopTime) return { lap: c.dnfLap, f: c.stopFrac, out: true };
-    if (c.fin != null && rt >= c.fin) return { lap: M.L + 1, f: Math.min(0.1, ((rt - c.fin) / M.medLap) * 0.5), done: true };
-    // tur bul (önceki karedeki turdan devam et)
-    let k = Math.max(1, Math.min(c.k, M.L));
-    while (k > 1 && (k === 1 ? 0 : R.laps[k - 1][i].t) > rt) k--;
-    while (k < M.L && R.laps[k][i].t <= rt) k++;
-    c.k = k;
-    const t0 = k === 1 ? 0 : R.laps[k - 1][i].t, t1 = R.laps[k][i].t;
-    const T = Math.max(0.001, t1 - t0);
-    let f = Math.max(0, (rt - t0) / T);
-    if (k === 1) { const g = c.g * 0.0022; f = f * (1 + g) - g; } // grid dizilişi
-    const cell = R.laps[k][i];
-    if (cell.p && !cell.d) {
-      // Pit turu: normal hızla gelir, pit yolunda kayıp süre kadar bekler
-      const loss = Math.max(0, T - M.medLap), norm = T - loss, entry = 1 + G.PIT_FROM;
-      const tIn = norm * entry, tt = rt - t0;
-      if (tt < tIn) f = tt / norm;
-      else {
-        const rest = T - tIn, u = (tt - tIn) / rest; // 0..1 pit girişinden çizgiye
-        const hold = loss / rest, a = (1 - hold) / 2;
-        const v = u < a ? (u / a) * 0.5 : u < a + hold ? 0.5 : 0.5 + ((u - a - hold) / Math.max(0.001, a)) * 0.5;
-        return { lap: k, f: entry + (1 - entry) * v, pit: ((entry + (1 - entry) * v) - 1 - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
-      }
-    }
-    // Bir önceki turda pite girdiyse çıkış yolundadır
-    if (k > 1 && R.laps[k - 1][i].p && f < G.PIT_TO) return { lap: k, f, pit: (f - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
-    return { lap: k, f };
-  }
+  /* ---------- Pist haritası (ui/trackmap.js → PW_RACEMAP) ---------- */
   function buildMap() {
-    const svg = $("#trackMap");
-    if (!svg || !window.PW_TRACKMAP) return;
-    const { R, mine } = S, G = PW_TRACKMAP.get(R.track.id);
-    svg.setAttribute("viewBox", G.box.join(" "));
-    const [a, b] = G.start, dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len * 2.6, ny = dx / len * 2.6;
-    svg.innerHTML = `
-      <path class="tm-pit" d="${G.pitD}"/>
-      <path class="tm-edge" d="${G.d}"/>
-      <path class="tm-road" id="tmRoad" d="${G.d}"/>
-      <line class="tm-start" x1="${a[0] - nx}" y1="${a[1] - ny}" x2="${a[0] + nx}" y2="${a[1] + ny}"/>
-      <g id="tmCars"></g>`;
-    const g = svg.querySelector("#tmCars");
-    // Önce rakipler, en üstte benim araçlarım
-    const order = R.entries.map((e, i) => i).sort((x, y) => (mine.has(x) ? 1 : 0) - (mine.has(y) ? 1 : 0));
-    S.dots = [];
-    const sc = document.createElementNS(SVGNS, "g");
-    sc.setAttribute("class", "tm-sc hidden");
-    sc.innerHTML = `<rect x="-2.6" y="-1.6" width="5.2" height="3.2" rx="0.8"/><text y="1">SC</text>`;
-    g.appendChild(sc); S.scDot = sc;
-    order.forEach((i) => {
-      const e = R.entries[i], my = mine.has(i);
-      const el = document.createElementNS(SVGNS, "g");
-      el.setAttribute("class", "tm-car" + (my ? " mine" : ""));
-      el.innerHTML = `<circle r="${my ? 2.1 : 1.55}" fill="${esc(e.color)}"/>` +
-        (my ? `<text class="tm-label" x="3" y="-2.4">${esc(String(e.name).split(" ").slice(-1)[0])}</text>` : "") +
-        `<title>${esc(e.name)} · ${esc(e.teamName)}</title>`;
-      g.appendChild(el);
-      S.dots[i] = el;
+    const { R, mine } = S;
+    S.map = PW_RACEMAP.create($("#trackMap"), {
+      trackId: R.track.id, laps: R.laps, sc: R.sc, wx: R.wx, mine,
+      cars: R.entries.map((e) => ({ color: e.color, name: e.name, team: e.teamName })),
     });
+    S.M = S.map.model;
   }
-  function drawMap() {
-    if (!S || !S.dots || !S.dots.length) return;
-    const { R, M } = S, G = PW_TRACKMAP.get(R.track.id), rt = view.rt;
-    let lead = null;
-    R.entries.forEach((e, i) => {
-      const pos = carPos(i, rt);
-      let xy = pos.pit != null ? G.pitAt(Math.max(0, Math.min(1, pos.pit))) : G.at(pos.f);
-      // Start: iki sıralı grid, ilk virajlara doğru tek sıraya iner
-      if (pos.lap === 1 && pos.pit == null && pos.f < 0.12) {
-        const a = G.at(pos.f - 0.002), b = G.at(pos.f + 0.002), dx = b[0] - a[0], dy = b[1] - a[1], ln = Math.hypot(dx, dy) || 1;
-        const side = (M.cars[i].g % 2 ? 1 : -1) * 0.95 * (1 - Math.max(0, pos.f) / 0.12);
-        xy = [xy[0] - (dy / ln) * side, xy[1] + (dx / ln) * side];
-      }
-      const el = S.dots[i];
-      el.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`);
-      el.classList.toggle("out", !!pos.out);
-      el.classList.toggle("in-pit", pos.pit != null);
-      if (!pos.out && !pos.done) { const d = pos.lap + pos.f; if (!lead || d > lead.d) lead = { d, f: pos.f }; }
-    });
-    // Güvenlik aracı: liderin hemen önünde
-    const k = Math.min(view.i + 1, M.L), scOn = R.sc && R.sc[k] && lead && rt < M.endT - M.medLap * 0.15;
-    S.scDot.classList.toggle("hidden", !scOn);
-    if (scOn) { const xy = G.at(lead.f + 0.03); S.scDot.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`); }
-    // Islak pist
-    const w = R.wx ? R.wx[Math.min(view.i, R.wx.length - 1)] || 0 : 0;
-    const road = $("#tmRoad");
-    if (road) road.setAttribute("class", "tm-road" + (w >= 60 ? " vwet" : w >= 22 ? " wet" : w >= 5 ? " damp" : ""));
-  }
+  function lapAt(rt) { return rt >= S.M.endT ? lastIdx() : S.map.lapAt(rt); }
+  function drawMap() { if (S && S.map) S.map.draw(view.rt, view.i); }
 
   function render() {
     const { R, mine, grid, pitsAt } = S;

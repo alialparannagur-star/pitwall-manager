@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PitWall Manager — Deneme ligi (çevrimdışı)</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=0.32">
 </head>
 <body>
   <header class="topbar">
@@ -96,6 +96,7 @@
         <input id="scrub" type="range" min="0" max="1" value="0" class="scrub">
       </div>
       <div class="race-grid">
+        <div class="card track-card"><svg id="trackMap" class="track-map" preserveAspectRatio="xMidYMid meet" aria-label="Pist haritası"></svg></div>
         <div class="card"><table id="board" class="board"></table></div>
         <div class="side">
           <div id="myCars"></div>
@@ -133,10 +134,11 @@
   </main>
 
   <!-- Ortak dosyalar (ileride sunucu da bunları kullanacak) -->
-  <script src="shared/data.js"></script>
-  <script src="shared/engine.js"></script>
+  <script src="shared/data.js?v=0.32"></script>
+  <script src="shared/engine.js?v=0.32"></script>
   <!-- Arayüz -->
-  <script src="app.js"></script>
+  <script src="ui/trackmap.js?v=0.32"></script>
+  <script src="app.js?v=0.32"></script>
   <!-- Cloudflare Web Analytics (çerezsiz ziyaret istatistiği) --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "7c474722022747379d3881f0cbeb6120"}'></script>
 </body>
 </html>
