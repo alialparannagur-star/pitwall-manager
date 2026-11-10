@@ -37,9 +37,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=0.30">
-  <link rel="stylesheet" href="themes.css?v=0.30">
-  <link rel="stylesheet" href="legal.css?v=0.30">
+  <link rel="stylesheet" href="style.css?v=0.31">
+  <link rel="stylesheet" href="themes.css?v=0.31">
+  <link rel="stylesheet" href="legal.css?v=0.31">
 </head>
 <body>
   <header class="topbar">
@@ -305,6 +305,7 @@
         <table id="qualiTable" class="board quali-table"></table>
       </div>
       <div class="race-grid" id="raceGrid">
+        <div class="card track-card"><svg id="trackMap" class="track-map" preserveAspectRatio="xMidYMid meet" aria-label="Pist haritası"></svg></div>
         <div class="card"><table id="board" class="board"></table></div>
         <div class="side">
           <div id="myCars"></div>
@@ -521,17 +522,18 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="legal-config.js?v=0.30"></script>
-  <script src="config.js?v=0.30"></script>
-  <script src="shared/data.js?v=0.30"></script>
-  <script src="shared/engine.js?v=0.30"></script>
-  <script src="ui/i18n.js?v=0.30"></script>
-  <script src="ui/api.js?v=0.30"></script>
-  <script src="ui/achievements.js?v=0.30"></script>
-  <script src="ui/tour.js?v=0.30"></script>
-  <script src="ui/strategy.js?v=0.30"></script>
-  <script src="ui/replay.js?v=0.30"></script>
-  <script src="online.js?v=0.30"></script>
+  <script src="legal-config.js?v=0.31"></script>
+  <script src="config.js?v=0.31"></script>
+  <script src="shared/data.js?v=0.31"></script>
+  <script src="shared/engine.js?v=0.31"></script>
+  <script src="ui/i18n.js?v=0.31"></script>
+  <script src="ui/api.js?v=0.31"></script>
+  <script src="ui/achievements.js?v=0.31"></script>
+  <script src="ui/tour.js?v=0.31"></script>
+  <script src="ui/strategy.js?v=0.31"></script>
+  <script src="ui/trackmap.js?v=0.31"></script>
+  <script src="ui/replay.js?v=0.31"></script>
+  <script src="online.js?v=0.31"></script>
   <!-- Cloudflare Web Analytics (çerezsiz ziyaret istatistiği) --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "7c474722022747379d3881f0cbeb6120"}'></script>
 </body>
 </html>

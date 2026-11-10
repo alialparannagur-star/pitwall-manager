@@ -517,3 +517,25 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
 @media (max-width: 700px) { .quali-table .q-tm, .quali-table .q-note { display: none; } .quali-head #qualiNext { margin-left: 0; } }
 .quali-table tr.q-cut td { text-align: center; font-size: 12px; color: var(--bad, #e03131); border-top: 2px dashed var(--bad, #e03131); padding: 2px; background: transparent !important; }
 .q-mode { font-size: 13px; }
+
+/* Pist haritası */
+.track-card { grid-column: 1 / -1; padding: 8px; }
+.track-map { display: block; width: 100%; height: 380px; }
+.tm-edge { fill: none; stroke: var(--line, #3a3f45); stroke-width: 5.2; stroke-linejoin: round; }
+.tm-road { fill: none; stroke: #5b6168; stroke-width: 3.6; stroke-linejoin: round; transition: stroke .6s; }
+:root[data-theme="light"] .tm-road { stroke: #9aa0a7; }
+:root[data-theme="light"] .tm-edge { stroke: #d5d8dc; }
+.tm-road.damp { stroke: #4f6170; } .tm-road.wet { stroke: #3f5a74; } .tm-road.vwet { stroke: #2f4f78; }
+:root[data-theme="light"] .tm-road.damp { stroke: #8fa3b5; } :root[data-theme="light"] .tm-road.wet { stroke: #6f93b8; } :root[data-theme="light"] .tm-road.vwet { stroke: #4f7fb8; }
+:root[data-theme="light"] .tm-start { stroke: #111; }
+.tm-pit { fill: none; stroke: #6c7178; stroke-width: 1.3; stroke-dasharray: 1.4 1; opacity: .8; }
+.tm-start { stroke: #fff; stroke-width: 0.9; }
+.tm-car circle { stroke: rgba(0,0,0,.55); stroke-width: 0.35; }
+.tm-car.mine circle { stroke: #fff; stroke-width: 0.6; }
+.tm-label { font: 700 3.2px Inter, sans-serif; fill: var(--text, #f4f4f2); paint-order: stroke; stroke: var(--bg, #0d0f11); stroke-width: 0.8px; }
+.tm-car.out { opacity: .35; }
+.tm-car.out circle { fill: #777 !important; }
+.tm-sc rect { fill: #fab005; stroke: #000; stroke-width: 0.3; }
+.tm-sc text { font: 800 2.2px Inter, sans-serif; text-anchor: middle; fill: #000; }
+.tm-sc.hidden { display: none; }
+@media (max-width: 700px) { .track-map { height: 240px; } }
