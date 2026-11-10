@@ -262,5 +262,16 @@
   document.addEventListener("DOMContentLoaded", wire);
   if (document.readyState !== "loading") wire();
 
-  window.PW_Replay = { open, showResults, stop };
+  // Belirli bir tur anına atla (x: kesirli tur; ör. 18.5). Tanıtım videosu kaydı için de kullanılır.
+  function seekLap(x) {
+    if (!S || !S.M) return;
+    const lt = S.M.leaderT, k = Math.max(0, Math.min(lt.length - 1, Math.floor(x))), fr = x - k;
+    const next = k + 1 < lt.length ? lt[k + 1] : S.M.endT;
+    stop();
+    view.rt = lt[k] + (next - lt[k]) * Math.max(0, Math.min(1, fr));
+    const i = lapAt(view.rt);
+    if (i !== view.i) { view.i = i; render(); }
+    drawMap();
+  }
+  window.PW_Replay = { open, showResults, stop, seekLap };
 })();

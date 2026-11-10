@@ -120,6 +120,12 @@
     laps.forEach((row, k) => k > 0 && row.forEach((c) => { if (c && c.l && !c.p && !c.d) ls.push(c.l); }));
     ls.sort((a, b) => a - b);
     const medLap = ls.length ? ls[Math.floor(ls.length / 2)] : 90;
+    // Her turun kendi temposu (güvenlik aracı / yağmur turları yavaş): pit kaybı buna göre hesaplanır
+    const lapMed = laps.map((row, k) => {
+      if (!k) return medLap;
+      const v = row.filter((c) => c && c.l && !c.p && !c.d).map((c) => c.l).sort((a, b) => a - b);
+      return v.length ? v[Math.floor(v.length / 2)] : medLap;
+    });
     const cars = [];
     for (let i = 0; i < n; i++) {
       const g = Math.round((laps[0][i].t || 0) / 0.25);
@@ -148,7 +154,7 @@
       const cell = laps[k][i];
       if (cell.p && !cell.d) {
         // Pit turu: normal hızla gelir, pit yolunda kayıp süre kadar bekler
-        const loss = Math.max(0, T - medLap), norm = T - loss, entry = 1 + G.PIT_FROM, tIn = norm * entry, tt = rt - t0;
+        const loss = Math.max(0, T - lapMed[k]), norm = T - loss, entry = 1 + G.PIT_FROM, tIn = norm * entry, tt = rt - t0;
         if (tt < tIn) f = tt / norm;
         else {
           const rest = T - tIn, u = (tt - tIn) / rest, hold = loss / rest, a = (1 - hold) / 2;
