@@ -57,7 +57,7 @@
       cum.push(cum[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1]));
     }
     const total = cum[cum.length - 1];
-    return (p) => {
+    const fn = (p) => {
       let x = (closed ? ((p % 1) + 1) % 1 : Math.max(0, Math.min(1, p))) * total;
       let lo = 0, hi = cum.length - 1;
       while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= x) lo = mid; else hi = mid; }
@@ -65,6 +65,8 @@
       const seg = cum[lo + 1] - cum[lo] || 1, k = (x - cum[lo]) / seg;
       return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
     };
+    fn.total = total;
+    return fn;
   }
   const pathD = (pts, closed) => "M" + pts.map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join(" L") + (closed ? " Z" : "");
 
@@ -184,16 +186,37 @@
     o.cars.map((c, i) => i).sort((x, y) => (mine.has(x) ? 1 : 0) - (mine.has(y) ? 1 : 0)).forEach((i) => {
       const c = o.cars[i], my = mine.has(i), el = document.createElementNS(SVGNS, "g");
       el.setAttribute("class", "tm-car" + (my ? " mine" : ""));
-      el.innerHTML = `<g class="tm-rot"><path class="tm-body" d="${CAR_PATH}" fill="${escX(c.color)}" transform="scale(${my ? 1.25 : 0.95})"/></g>` +
-        (my ? `<text class="tm-label" x="3" y="${mineNo++ % 2 ? 5.2 : -2.6}">${escX(String(c.name).split(" ").slice(-1)[0])}</text>` : "") +
+      el.innerHTML = `<g class="tm-rot"><path class="tm-body" d="${CAR_PATH}" fill="${escX(c.color)}" transform="scale(${my ? 1.12 : 0.78})"/></g>` +
+        (my ? (mineNo++ % 2 ? `<text class="tm-label" x="-3" y="4.4" text-anchor="end">` : `<text class="tm-label" x="3" y="-2.6">`) + `${escX(String(c.name).split(" ").slice(-1)[0])}</text>` : "") +
         `<title>${escX(c.name)}${c.team ? " · " + escX(c.team) : ""}</title>`;
       grp.appendChild(el);
       dots[i] = el;
     });
+    // Görsel aralık: pistte yan yana gelen araçlar üst üste binmesin (sıralama/süreler değişmez)
+    const GAP = 4.4 / G.at.total; // ≈ bir araç boyu, tur kesri olarak
+    function spread(P) {
+      const live = [];
+      for (let i = 0; i < n; i++) {
+        const p = P[i];
+        if (p.out || p.done || p.pit != null || (p.lap === 1 && p.f < 0.12)) continue;
+        live.push({ i, x: ((p.f % 1) + 1) % 1 });
+      }
+      live.sort((a, b) => b.x - a.x);
+      for (let k = 1; k < live.length; k++) {
+        const prev = live[k - 1], cur = live[k];
+        if (prev.x - cur.x < GAP) cur.x = prev.x - GAP;
+      }
+      // turun başını geçen kuyruğu (çizgi civarı) sondan başa sar
+      live.forEach((c) => { P[c.i].f = c.x; });
+    }
     function draw(rt, lapIdx) {
       let lead = null;
+      const P = [];
+      for (let i = 0; i < n; i++) P.push(carPos(i, rt));
+      const leadDist = P.reduce((m, p) => (!p.out && !p.done ? Math.max(m, p.lap + p.f) : m), -1);
+      spread(P);
       for (let i = 0; i < n; i++) {
-        const pos = carPos(i, rt);
+        const pos = P[i];
         let xy = pos.pit != null ? G.pitAt(Math.max(0, Math.min(1, pos.pit))) : G.at(pos.f);
         if (pos.lap === 1 && pos.pit == null && pos.f < 0.12) { // iki sıralı start
           const p0 = G.at(pos.f - 0.002), p1 = G.at(pos.f + 0.002), ddx = p1[0] - p0[0], ddy = p1[1] - p0[1], ln = Math.hypot(ddx, ddy) || 1;
@@ -214,6 +237,7 @@
         el.classList.toggle("in-pit", pos.pit != null);
         if (!pos.out && !pos.done) { const d = pos.lap + pos.f; if (!lead || d > lead.d) lead = { d, f: pos.f }; }
       }
+      if (leadDist >= 0 && lead) lead.f = ((leadDist % 1) + 1) % 1;
       const k = Math.min((lapIdx || 0) + 1, L), scOn = o.sc && o.sc[k] && lead && rt < endT - medLap * 0.15;
       scDot.classList.toggle("hidden", !scOn);
       if (scOn) { const xy = G.at(lead.f + 0.03); scDot.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`); }
