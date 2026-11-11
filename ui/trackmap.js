@@ -107,6 +107,8 @@
        cars[i]    = { color, name, team }
      → { model, lapAt(rt), draw(rt, lapIdx) } */
   const SVGNS = "http://www.w3.org/2000/svg";
+  // Üstten bakış araba silueti (burun +x yönünde)
+  const CAR_PATH = "M2.6 0 L1.5 -0.55 L0.9 -0.55 L0.6 -1.05 L-0.6 -1.05 L-0.9 -0.6 L-1.9 -0.6 L-2.2 -1.0 L-2.6 -1.0 L-2.6 1.0 L-2.2 1.0 L-1.9 0.6 L-0.9 0.6 L-0.6 1.05 L0.6 1.05 L0.9 0.55 L1.5 0.55 Z";
   const escX = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function createRaceMap(svg, o) {
     const G = get(o.trackId), laps = o.laps, n = o.cars.length, L = laps.length - 1, mine = o.mine || new Set();
@@ -178,11 +180,12 @@
     scDot.innerHTML = `<rect x="-2.6" y="-1.6" width="5.2" height="3.2" rx="0.8"/><text y="1">SC</text>`;
     grp.appendChild(scDot);
     const dots = [];
+    let mineNo = 0;
     o.cars.map((c, i) => i).sort((x, y) => (mine.has(x) ? 1 : 0) - (mine.has(y) ? 1 : 0)).forEach((i) => {
       const c = o.cars[i], my = mine.has(i), el = document.createElementNS(SVGNS, "g");
       el.setAttribute("class", "tm-car" + (my ? " mine" : ""));
-      el.innerHTML = `<circle r="${my ? 2.1 : 1.55}" fill="${escX(c.color)}"/>` +
-        (my ? `<text class="tm-label" x="3" y="-2.4">${escX(String(c.name).split(" ").slice(-1)[0])}</text>` : "") +
+      el.innerHTML = `<g class="tm-rot"><path class="tm-body" d="${CAR_PATH}" fill="${escX(c.color)}" transform="scale(${my ? 1.25 : 0.95})"/></g>` +
+        (my ? `<text class="tm-label" x="3" y="${mineNo++ % 2 ? 5.2 : -2.6}">${escX(String(c.name).split(" ").slice(-1)[0])}</text>` : "") +
         `<title>${escX(c.name)}${c.team ? " · " + escX(c.team) : ""}</title>`;
       grp.appendChild(el);
       dots[i] = el;
@@ -199,6 +202,14 @@
         }
         const el = dots[i];
         el.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`);
+        // Yön: pistin (ya da pit yolunun) o noktadaki doğrultusu
+        if (!pos.out || !el._ang) {
+          let q0, q1;
+          if (pos.pit != null) { const u = Math.max(0, Math.min(1, pos.pit)); q0 = G.pitAt(Math.max(0, u - 0.02)); q1 = G.pitAt(Math.min(1, u + 0.02)); }
+          else { q0 = G.at(pos.f - 0.003); q1 = G.at(pos.f + 0.003); }
+          el._ang = (Math.atan2(q1[1] - q0[1], q1[0] - q0[0]) * 180) / Math.PI;
+          el.firstChild.setAttribute("transform", `rotate(${el._ang.toFixed(1)})`);
+        }
         el.classList.toggle("out", !!pos.out);
         el.classList.toggle("in-pit", pos.pit != null);
         if (!pos.out && !pos.done) { const d = pos.lap + pos.f; if (!lead || d > lead.d) lead = { d, f: pos.f }; }

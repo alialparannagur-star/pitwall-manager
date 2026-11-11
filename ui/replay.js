@@ -136,7 +136,7 @@
     const dt = Math.min(100, now - view.last); view.last = now;
     view.rt = Math.min(S.M.endT, view.rt + (dt / 1000) * simRate());
     const k = lapAt(view.rt);
-    if (k !== view.i) { view.i = k; render(); }
+    if (k !== view.i) { const prev = view.i; view.i = k; render(); if (k > prev && k - prev <= 2) lapEvents(prev, k); }
     drawMap();
     if (view.rt >= S.M.endT) {
       stop(); view.i = lastIdx(); render(); drawMap(); $("#playBtn").textContent = T("▶ Baştan izle");
@@ -186,6 +186,7 @@
         <td>${pitsAt[i][c.i] || 0}${c.p ? ' <span class="pitflag">PIT</span>' : ""}</td></tr>`;
     });
     $("#board").innerHTML = html;
+    renderBroadcast(order, leader, i, last);
 
     $("#myCars").innerHTML = order.map((c, k) => ({ c, k })).filter(({ c }) => mine.has(c.i)).map(({ c, k }) => {
       const e = R.entries[c.i];
@@ -207,6 +208,48 @@
     }).join("");
 
     $("#toEndBtn").textContent = T(last ? "Sonuçları gör →" : "Sonucu göster ⏭");
+  }
+
+  /* ---------- Yayın görünümü: zamanlama kulesi + üst bilgi + olay bantları ---------- */
+  const code3 = (name) => String(name).split(" ").slice(-1)[0].toLocaleUpperCase(LOCALE === "tr" ? "tr-TR" : "en-GB").slice(0, 3);
+  function renderBroadcast(order, leader, i, last) {
+    const { R, mine } = S;
+    const tower = $("#bcTower");
+    if (!tower) return;
+    tower.innerHTML = order.map((c, k) => {
+      const e = R.entries[c.i];
+      const gap = c.d ? "OUT" : k === 0 ? (i === 0 ? "POLE" : last ? "WIN" : T("LİDER")) : "+" + (c.t - leader.t).toFixed(1);
+      return `<div class="bc-row${mine.has(c.i) ? " mine" : ""}${c.d ? " out" : ""}" title="${esc(e.name)} · ${esc(e.teamName)}">
+        <span class="bc-pos">${k + 1}</span><span class="bc-bar" style="background:${esc(e.color)}"></span>
+        <span class="bc-code">${esc(code3(e.name))}</span>
+        <span class="bc-gap">${c.p && !c.d ? '<b class="bc-pit">PIT</b>' : gap}</span>
+        <span class="bc-tyre tyre ${c.c}">${c.c}</span></div>`;
+    }).join("");
+    $("#bcLap").innerHTML = i === 0 ? `<span>${T("TUR")}</span> <b>0</b>/${R.track.laps}` : last ? "🏁 <b>FINISH</b>" : `<span>${T("TUR")}</span> <b>${i}</b>/${R.track.laps}`;
+    $("#bcChips").innerHTML = wxBadge(R.wx, i) + (R.sc && R.sc[Math.min(i + 1, R.sc.length - 1)] && !last ? ` <span class="bc-sc">SC</span>` : "");
+  }
+  // Bir tura geçildiğinde o tura ait en önemli olayı ekranın altında bant olarak göster
+  let bannerTimer = null;
+  function banner(kind, text) {
+    const b = $("#bcBanner");
+    if (!b) return;
+    b.className = "bc-banner " + kind;
+    b.innerHTML = text;
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => b.classList.add("hidden"), 2600);
+  }
+  function lapEvents(from, to) {
+    const { R, mine } = S;
+    if (from === 0 && to >= 1) { banner("green", `🚦 ${T("Işıklar söndü, yarış başladı!")}`); return; }
+    const evs = R.events.filter((ev) => ev.lap > from && ev.lap <= to);
+    const pick = (kinds, onlyMine) => evs.find((ev) => kinds.includes(ev.kind) && (!onlyMine || ev.ids.some((x) => mine.has(x))));
+    let ev;
+    if ((ev = pick(["sc_out"]))) return banner("sc", `🚨 ${T("GÜVENLİK ARACI")}`);
+    if ((ev = pick(["sc_in"]))) return banner("green", `🟢 ${T("YEŞİL BAYRAK")}`);
+    if ((ev = pick(["rain_start", "rain_heavy", "drizzle", "rain_stop", "dry_line"]))) return banner("wx", esc(eventText(ev, R.entries)));
+    if ((ev = pick(["pit", "pit_slow", "pit_early", "pit_emergency"], true))) return banner("radio", `📻 <small>${T("Takım telsizi")}</small> ${esc(eventText(ev, R.entries))}`);
+    if ((ev = pick(["crash", "crash_dry", "dnf"]))) return banner("crash", esc(eventText(ev, R.entries)));
+    if ((ev = pick(["lead"]))) return banner("lead", esc(eventText(ev, R.entries)));
   }
 
   function showResults() {
