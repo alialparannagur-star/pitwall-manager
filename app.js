@@ -20,7 +20,7 @@ function show(id) {
   $("#" + id).classList.remove("hidden");
   window.scrollTo(0, 0);
 }
-const money = (n) => "$" + Math.round(n).toLocaleString("tr-TR");
+const money = (n) => "$" + Math.round(n).toLocaleString(LOCALE());
 function fmtLap(t) {
   if (t == null || !isFinite(t)) return "—";
   const m = Math.floor(t / 60);
@@ -31,8 +31,8 @@ function fmtRaceTime(t) {
   return `${h}:${String(m).padStart(2, "0")}:${s}`;
 }
 const wearColor = (w) => (w < 50 ? "#2fbf71" : w < 70 ? "#ffd43b" : "#ff5c5c");
-const degLabel = (m) => (m >= 1.15 ? "Yüksek" : m <= 0.9 ? "Düşük" : "Orta");
-const otLabel = (o) => (o >= 1.1 ? "Kolay" : o <= 0.6 ? "Çok zor" : "Normal");
+const degLabel = (m) => T(m >= 1.15 ? "Yüksek" : m <= 0.9 ? "Düşük" : "Orta");
+const otLabel = (o) => T(o >= 1.1 ? "Kolay" : o <= 0.6 ? "Çok zor" : "Normal");
 const team = (id) => DEMO_TEAMS.find((t) => t.id === id);
 const allDrivers = () => DEMO_TEAMS.flatMap((t) => t.drivers.map((d) => ({ ...d, team: t })));
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -70,7 +70,7 @@ function renderMenu() {
     el.innerHTML = `
       <div class="team-stripe" style="background:${t.color}"></div>
       <h3>${t.name}</h3>
-      <div class="stat">Araç performansı: <b>${avg}</b></div>
+      <div class="stat">${T("Araç performansı")}: <b>${avg}</b></div>
       <div class="ratingbar"><div style="width:${(avg - 60) * 2.5}%;background:${t.color}"></div></div>
       <div class="drivers">${t.drivers.map((d) => `${d.name} (${d.skill})`).join("<br>")}</div>`;
     el.onclick = () => newCareer(t.id);
@@ -84,13 +84,13 @@ function showHub() {
   if (S.round >= TRACKS.length) { showSeasonEnd(); return; }
   const tr = TRACKS[S.round];
   const t = team(S.myTeam);
-  $("#topInfo").textContent = `${t.name} · Yarış ${S.round + 1}/${TRACKS.length}`;
+  $("#topInfo").textContent = `${t.name} · ${T("Yarış {n}/{m}", { n: S.round + 1, m: TRACKS.length })}`;
   const w = TRACK_TYPES[tr.type].w;
   const key = Object.entries(w).sort((a, b) => b[1] - a[1])[0][0];
   $("#hubRace").innerHTML = `
-    <h2>${tr.flag} ${tr.name}</h2>
-    <p class="muted">Yarış ${S.round + 1} / ${TRACKS.length} · ${tr.laps} tur · Pit kaybı ~${tr.pitLoss} sn</p>
-    <p>Pist tipi: <b>${TRACK_TYPES[tr.type].name}</b> (en önemli parça: ${PARTS[key].name}) · Lastik aşınması: <b>${degLabel(tr.degMult)}</b> · Sollama: <b>${otLabel(tr.overtake)}</b></p>`;
+    <h2>${tr.flag} ${trackName(tr)}</h2>
+    <p class="muted">${T("Yarış {n}/{m}", { n: S.round + 1, m: TRACKS.length })} · ${T("{n} tur", { n: tr.laps })} · ${T("Pit kaybı ~{n} sn", { n: tr.pitLoss })}</p>
+    <p>${T("Pist tipi")}: <b>${T(TRACK_TYPES[tr.type].name)}</b> (${T("en önemli parça")}: ${T(PARTS[key].name)}) · ${T("Lastik aşınması")}: <b>${degLabel(tr.degMult)}</b> · ${T("Sollama")}: <b>${otLabel(tr.overtake)}</b></p>`;
   $("#hubTeam").textContent = t.name;
   $("#hubTeam").style.color = t.color;
   $("#hubMoney").textContent = money(S.teams[S.myTeam].money);
@@ -107,10 +107,10 @@ function leagueAvg(part) {
 function carStatsHtml() {
   const car = S.teams[S.myTeam].car;
   return `<div class="carstats">${Object.keys(PARTS).map((p) => `
-    <span>${PARTS[p].name}</span>
-    <div class="statbar"><div class="fill" style="width:${(car[p] - 60) * 2.5}%"></div><div class="avg" style="left:${(leagueAvg(p) - 60) * 2.5}%" title="Lig ortalaması"></div></div>
+    <span>${T(PARTS[p].name)}</span>
+    <div class="statbar"><div class="fill" style="width:${(car[p] - 60) * 2.5}%"></div><div class="avg" style="left:${(leagueAvg(p) - 60) * 2.5}%" title="${T("Lig ortalaması")}"></div></div>
     <b class="num">${car[p]}</b>`).join("")}</div>
-    <p class="muted small">Beyaz çizgi: lig ortalaması</p>`;
+    <p class="muted small">${T("Beyaz çizgi: lig ortalaması")}</p>`;
 }
 
 function renderStandings(el) {
@@ -118,10 +118,10 @@ function renderStandings(el) {
   const teams = DEMO_TEAMS.map((t) => ({ ...t, pts: S.teamPts[t.id] || 0 })).sort((a, b) => b.pts - a.pts);
   el.innerHTML = `
     <div class="tabs-2">
-      <div><h3>Pilotlar</h3><table class="mini">
+      <div><h3>${T("Pilotlar")}</h3><table class="mini">
         ${drivers.map((d, i) => `<tr class="${d.team.id === S.myTeam ? "me" : ""}"><td>${i + 1}</td><td><span class="dot" style="background:${d.team.color}"></span>${d.name}</td><td class="num">${d.pts}</td></tr>`).join("")}
       </table></div>
-      <div><h3>Takımlar</h3><table class="mini">
+      <div><h3>${T("Takımlar")}</h3><table class="mini">
         ${teams.map((t, i) => `<tr class="${t.id === S.myTeam ? "me" : ""}"><td>${i + 1}</td><td><span class="dot" style="background:${t.color}"></span>${t.name}</td><td class="num">${t.pts}</td></tr>`).join("")}
       </table></div>
     </div>`;
@@ -136,13 +136,13 @@ function showGarage() {
     const maxed = val >= ECONOMY.statMax;
     return `<div class="part">
       <div>
-        <div class="name">${info.name} <span class="muted small">· Seviye ${lvl}</span></div>
-        <div class="desc">${info.desc}</div>
+        <div class="name">${T(info.name)} <span class="muted small">· ${T("Seviye {n}", { n: lvl })}</span></div>
+        <div class="desc">${T(info.desc)}</div>
         <div class="statbar"><div class="fill" style="width:${(val - 60) * 2.5}%"></div><div class="avg" style="left:${(leagueAvg(p) - 60) * 2.5}%"></div></div>
-        <div class="small muted" style="margin-top:4px">Değer: <b style="color:var(--text)">${val}</b> · Lig ortalaması: ${leagueAvg(p).toFixed(1)}</div>
+        <div class="small muted" style="margin-top:4px">${T("Değer")}: <b style="color:var(--text)">${val}</b> · ${T("Lig ortalaması")}: ${leagueAvg(p).toFixed(1)}</div>
       </div>
       <button class="btn ${!maxed && my.money >= cost ? "primary" : ""}" data-buy="${p}" ${maxed || my.money < cost ? "disabled" : ""}>
-        ${maxed ? "Maksimum" : `+${upgradeGain(val)} · ${money(cost)}`}
+        ${maxed ? T("Maksimum") : `+${upgradeGain(val)} · ${money(cost)}`}
       </button>
     </div>`;
   }).join("");
@@ -179,15 +179,15 @@ function showStrategy() {
   const car = S.teams[S.myTeam].car;
   const sugg = E.suggestStrategies(tr, car, 4);
   current = { track: tr, sugg, plans: [clone(sugg[0].plan), clone(sugg[Math.min(1, sugg.length - 1)].plan)] };
-  $("#stratTitle").textContent = `${tr.flag} ${tr.name}`;
-  $("#stratInfo").textContent = `${tr.laps} tur · Lastik aşınması: ${degLabel(tr.degMult)} · Sollama: ${otLabel(tr.overtake)} · Pit kaybı ~${tr.pitLoss} sn`;
+  $("#stratTitle").textContent = `${tr.flag} ${trackName(tr)}`;
+  $("#stratInfo").textContent = `${T("{n} tur", { n: tr.laps })} · ${T("Lastik aşınması")}: ${degLabel(tr.degMult)} · ${T("Sollama")}: ${otLabel(tr.overtake)} · ${T("Pit kaybı ~{n} sn", { n: tr.pitLoss })}`;
   renderPlans();
   show("strategy");
 }
 
 function tyreChips(key, sel) {
   return PW_DATA.DRY.map((k) =>
-    `<button class="chip ${sel === k ? "active" : ""}" data-tyre="${key}:${k}"><span class="tyre ${k}">${k}</span>${COMPOUNDS[k].name}</button>`).join("");
+    `<button class="chip ${sel === k ? "active" : ""}" data-tyre="${key}:${k}"><span class="tyre ${k}">${k}</span>${T(COMPOUNDS[k].name)}</button>`).join("");
 }
 
 function renderPlans() {
@@ -202,45 +202,45 @@ function renderPlans() {
     const plan = current.plans[k];
     const est = E.estimatePlan(tr, car, plan);
     const msgs = [];
-    if (!est.twoCompounds) msgs.push(`<div class="warn">⚠️ En az 2 farklı lastik kullanmalısın, yoksa +20 sn ceza alırsın.</div>`);
-    if (est.maxWear > plan.wearLimit) msgs.push(`<div class="warn">⚠️ Bir bölümde lastik %${Math.round(est.maxWear)} aşınacak. Güvenlik sınırın (%${plan.wearLimit}) devreye girip seni erken pite sokabilir.</div>`);
+    if (!est.twoCompounds) msgs.push(`<div class="warn">⚠️ ${T("En az 2 farklı lastik kullanmalısın, yoksa +20 sn ceza alırsın.")}</div>`);
+    if (est.maxWear > plan.wearLimit) msgs.push(`<div class="warn">⚠️ ${T("Bir bölümde lastik %{w} aşınacak. Güvenlik sınırın (%{l}) devreye girip seni erken pite sokabilir.", { w: Math.round(est.maxWear), l: plan.wearLimit })}</div>`);
     const diff = est.time - best;
-    msgs.push(diff < 1 ? `<div class="ok">✓ Çok iyi bir plan (en iyi tahmine yakın)</div>` : `<div class="warn">Tahmini kayıp: en iyi plana göre +${diff.toFixed(1)} sn</div>`);
+    msgs.push(diff < 1 ? `<div class="ok">✓ ${T("Çok iyi bir plan (en iyi tahmine yakın)")}</div>` : `<div class="warn">${T("Tahmini kayıp: en iyi plana göre +{n} sn", { n: diff.toFixed(1) })}</div>`);
 
     const card = document.createElement("div");
     card.className = "card plan driver-panel";
     card.style.borderLeftColor = t.color;
     card.innerHTML = `
-      <h2>${d.name} <span class="muted small">Yetenek ${d.skill}</span></h2>
-      <div class="dp-label">Başlangıç lastiği</div>
+      <h2>${d.name} <span class="muted small">${T("Yetenek {n}", { n: d.skill })}</span></h2>
+      <div class="dp-label">${T("Başlangıç lastiği")}</div>
       <div class="row">${tyreChips("start", plan.start)}</div>
 
-      <div class="dp-label">Pit stoplar</div>
+      <div class="dp-label">${T("Pit stoplar")}</div>
       ${plan.stops.map((s, j) => `
         <div class="stop-row">
-          <b>${j + 1}. pit:</b> Tur <input type="number" data-stoplap="${j}" min="1" max="${tr.laps - 1}" value="${s.lap}"> sonunda →
+          <b>${T("{n}. pit:", { n: j + 1 })}</b> ${T("Tur")} <input type="number" data-stoplap="${j}" min="1" max="${tr.laps - 1}" value="${s.lap}"> ${T("sonunda →")}
           ${tyreChips("stop" + j, s.tyre)}
-          <button class="x-btn" data-del="${j}" title="Sil">✕</button>
+          <button class="x-btn" data-del="${j}" title="${T("Sil")}">✕</button>
         </div>`).join("")}
-      ${plan.stops.length < 3 ? `<button class="chip" data-add="1">+ Pit stop ekle</button>` : ""}
+      ${plan.stops.length < 3 ? `<button class="chip" data-add="1">${T("+ Pit stop ekle")}</button>` : ""}
 
-      <div class="dp-label">Plan önizleme</div>
+      <div class="dp-label">${T("Plan önizleme")}</div>
       <div class="stints">${est.stints.map((s) => `<div class="stint ${s.tyre}" style="flex:${Math.max(1, s.laps)}">${s.tyre} · ${s.laps}</div>`).join("")}</div>
-      <div class="stint-notes">${est.stints.map((s) => `${COMPOUNDS[s.tyre].name}: ${s.laps} tur → aşınma ~%${Math.round(s.endWear)}`).join(" · ")}</div>
+      <div class="stint-notes">${est.stints.map((s) => `${T(COMPOUNDS[s.tyre].name)}: ${T("{n} tur → aşınma ~%{w}", { n: s.laps, w: Math.round(s.endWear) })}`).join(" · ")}</div>
       ${msgs.join("")}
 
-      <div class="dp-label">Sürüş modu</div>
-      <div class="row">${Object.entries(MODES).map(([m, info]) => `<button class="chip ${plan.mode === m ? "active" : ""}" data-mode="${m}">${info.name}</button>`).join("")}</div>
-      <label class="small" style="display:block;margin-top:8px"><input type="checkbox" data-pushend ${plan.pushEnd ? "checked" : ""}> Son 8 turda atak yap (lastik izin verirse)</label>
+      <div class="dp-label">${T("Sürüş modu")}</div>
+      <div class="row">${Object.entries(MODES).map(([m, info]) => `<button class="chip ${plan.mode === m ? "active" : ""}" data-mode="${m}">${T(info.name)}</button>`).join("")}</div>
+      <label class="small" style="display:block;margin-top:8px"><input type="checkbox" data-pushend ${plan.pushEnd ? "checked" : ""}> ${T("Son 8 turda atak yap (lastik izin verirse)")}</label>
 
-      <div class="dp-label">Lastik güvenlik sınırı: aşınma bu değere ulaşırsa erken pite gir</div>
+      <div class="dp-label">${T("Lastik güvenlik sınırı: aşınma bu değere ulaşırsa erken pite gir")}</div>
       <div class="row">${[75, 85, 95].map((v) => `<button class="chip ${plan.wearLimit === v ? "active" : ""}" data-limit="${v}">%${v}</button>`).join("")}</div>
 
-      <div class="dp-label">Mühendislerin önerileri</div>
+      <div class="dp-label">${T("Mühendislerin önerileri")}</div>
       <div class="sugg">${current.sugg.map((o, i) => `
         <button class="chip" data-sugg="${i}">
-          <span><b>${o.label}</b> · pit: tur ${o.plan.stops.map((s) => s.lap).join(", ")}</span>
-          <span class="muted">${i === 0 ? "en hızlı tahmin" : "+" + (o.est.time - best).toFixed(1) + " sn"}</span>
+          <span><b>${o.label}</b> · ${T("pit: tur")} ${o.plan.stops.map((s) => s.lap).join(", ")}</span>
+          <span class="muted">${i === 0 ? T("en hızlı tahmin") : "+" + (o.est.time - best).toFixed(1) + " " + T("sn")}</span>
         </button>`).join("")}</div>`;
 
     card.addEventListener("click", (ev) => {
@@ -331,9 +331,9 @@ function runRace() {
   }) : null;
   replay.rt = 0;
 
-  $("#raceTitle").textContent = `${tr.flag} ${tr.name}`;
+  $("#raceTitle").textContent = `${tr.flag} ${trackName(tr)}`;
   $("#scrub").max = tr.laps;
-  $("#playBtn").textContent = "▶ İzle";
+  $("#playBtn").textContent = T("▶ İzle");
   stopReplay();
   replay.i = 0;
   setSpeed(replay.speed);
@@ -345,11 +345,11 @@ function stopReplay() { if (replay.timer) cancelAnimationFrame(replay.timer); re
 const mapEnd = () => (current.map ? current.map.model.endT : 0);
 function drawMap() { if (current.map) current.map.draw(replay.rt, replay.i); }
 function togglePlay() {
-  if (replay.timer) { stopReplay(); $("#playBtn").textContent = "▶ İzle"; return; }
+  if (replay.timer) { stopReplay(); $("#playBtn").textContent = T("▶ İzle"); return; }
   if (replay.i >= current.track.laps) { replay.i = 0; replay.rt = 0; renderReplay(); }
   replay.last = performance.now();
   replay.timer = requestAnimationFrame(frame);
-  $("#playBtn").textContent = "⏸ Duraklat";
+  $("#playBtn").textContent = T("⏸ Duraklat");
 }
 // Zaman tabanlı oynatma: 1x'te bir tur ≈ 3 sn
 function frame(now) {
@@ -357,14 +357,14 @@ function frame(now) {
   if (!current.map) { // harita yoksa eski tur tur oynatma
     replay.rt += dt; if (replay.rt < replay.speed) { replay.timer = requestAnimationFrame(frame); return; }
     replay.rt = 0; replay.i++; renderReplay();
-    if (replay.i >= current.track.laps) { stopReplay(); $("#playBtn").textContent = "▶ Baştan izle"; return; }
+    if (replay.i >= current.track.laps) { stopReplay(); $("#playBtn").textContent = T("▶ Baştan izle"); return; }
     replay.timer = requestAnimationFrame(frame); return;
   }
   const M = current.map.model;
   replay.rt = Math.min(M.endT, replay.rt + (dt / 1000) * (M.medLap / (replay.speed * 3 / 1000)));
   const k = replay.rt >= M.endT ? current.track.laps : Math.min(current.track.laps, current.map.lapAt(replay.rt));
   if (k !== replay.i) { replay.i = k; renderReplay(); } else drawMap();
-  if (replay.rt >= M.endT) { stopReplay(); $("#playBtn").textContent = "▶ Baştan izle"; return; }
+  if (replay.rt >= M.endT) { stopReplay(); $("#playBtn").textContent = T("▶ Baştan izle"); return; }
   replay.timer = requestAnimationFrame(frame);
 }
 function setSpeed(ms) {
@@ -379,7 +379,7 @@ function renderReplay() {
   const snap = current.result.laps[i];
   const last = i >= tr.laps;
   $("#scrub").value = i;
-  $("#lapInfo").innerHTML = i === 0 ? "Başlangıç dizilişi" : last ? "<b>Damalı bayrak!</b> 🏁" : `Tur <b>${i}</b> / ${tr.laps}`;
+  $("#lapInfo").innerHTML = i === 0 ? T("Başlangıç dizilişi") : last ? `<b>${T("Damalı bayrak!")}</b> 🏁` : `${T("Tur")} <b>${i}</b> / ${tr.laps}`;
 
   let order;
   if (last) {
@@ -391,12 +391,12 @@ function renderReplay() {
   }
   const leader = order[0];
   const pits = current.pitsAt[i];
-  let rows = `<tr><th>#</th><th>Pilot</th><th>Fark</th><th>Son tur</th><th>Lastik</th><th>Pit</th></tr>`;
+  let rows = `<tr><th>#</th><th>${T("Pilot")}</th><th>${T("Fark")}</th><th>${T("Son tur")}</th><th>${T("Lastik")}</th><th>Pit</th></tr>`;
   order.forEach((c, idx) => {
     const e = current.byId[c.id];
     const diff = current.grid[c.id] - (idx + 1);
     const arrow = i === 0 || c.d || diff === 0 ? "" : diff > 0 ? `<span class="up">▲${diff}</span>` : `<span class="down">▼${-diff}</span>`;
-    const gap = c.d ? "DNF" : c === leader ? (i === 0 ? "Pole" : "Lider") : "+" + (c.t - leader.t).toFixed(3);
+    const gap = c.d ? "DNF" : c === leader ? (i === 0 ? "Pole" : T("Lider")) : "+" + (c.t - leader.t).toFixed(3);
     rows += `<tr class="${e.teamId === S.myTeam ? "player" : ""} ${c.d ? "dnf" : ""}">
       <td class="pos">${idx + 1}</td>
       <td><span class="teambar" style="background:${e.color}"></span>${e.name} ${arrow}</td>
@@ -413,10 +413,10 @@ function renderReplay() {
     const e = current.byId[c.id];
     return `<div class="card driver-panel" style="border-left-color:${e.color}">
       <div class="dp-head"><span class="dp-pos">${c.d ? "DNF" : "P" + (idx + 1)}</span><span class="dp-name">${e.name}</span>
-        <span class="dp-gap">${c.d || c === leader ? "" : "+" + (c.t - leader.t).toFixed(1) + " sn"}</span></div>
-      <div class="dp-tyre"><span class="tyre ${c.c}">${c.c}</span><span>${COMPOUNDS[c.c].name} · ${c.a} tur · Aşınma %${c.w}</span></div>
+        <span class="dp-gap">${c.d || c === leader ? "" : "+" + (c.t - leader.t).toFixed(1) + " " + T("sn")}</span></div>
+      <div class="dp-tyre"><span class="tyre ${c.c}">${c.c}</span><span>${T(COMPOUNDS[c.c].name)} · ${T("{n} tur", { n: c.a })} · ${T("Aşınma %{n}", { n: c.w })}</span></div>
       <div class="wearbar"><div class="wearfill" style="width:${c.w}%;background:${wearColor(c.w)}"></div></div>
-      <div class="small muted">Plan: ${e.strategy.start} → ${e.strategy.stops.map((s) => `${s.tyre} (tur ${s.lap})`).join(" → ")} · ${MODES[e.strategy.mode].name}</div>
+      <div class="small muted">Plan: ${e.strategy.start} → ${e.strategy.stops.map((s) => `${s.tyre} (${T("tur")} ${s.lap})`).join(" → ")} · ${T(MODES[e.strategy.mode].name)}</div>
     </div>`;
   }).join("");
 
@@ -426,10 +426,10 @@ function renderReplay() {
   const evs = current.result.events.filter((ev) => ev.lap <= i && (!mine || ev.ids.some((id) => myIds.has(id))));
   $("#log").innerHTML = evs.slice().reverse().slice(0, 80).map((ev) => {
     const isMine = ev.ids.some((id) => myIds.has(id));
-    return `<li class="${isMine ? "player" : ""} ${ev.kind === "dnf" && isMine ? "bad" : ""}"><span class="lapno">T${ev.lap}</span>${ev.text}</li>`;
+    return `<li class="${isMine ? "player" : ""} ${ev.kind === "dnf" && isMine ? "bad" : ""}"><span class="lapno">${T("T")}${ev.lap}</span>${eventText(ev, current.byId)}</li>`;
   }).join("");
 
-  $("#toEndBtn").textContent = last ? "Sonuçları gör →" : "Sonucu göster ⏭";
+  $("#toEndBtn").textContent = last ? T("Sonuçları gör →") : T("Sonucu göster ⏭");
   drawMap();
 }
 
@@ -439,7 +439,7 @@ function showResults() {
   const tr = current.track;
   const res = current.result.results;
   const winner = res[0];
-  let rows = `<tr><th>#</th><th>Pilot</th><th>Takım</th><th>Süre / Fark</th><th>En iyi tur</th><th>Puan</th></tr>`;
+  let rows = `<tr><th>#</th><th>${T("Pilot")}</th><th>${T("Takım")}</th><th>${T("Süre / Fark")}</th><th>${T("En iyi tur")}</th><th>${T("Puan")}</th></tr>`;
   res.forEach((r) => {
     const e = current.byId[r.id];
     const time = r.dnf ? "DNF" : r === winner ? fmtRaceTime(r.total) : "+" + r.gap.toFixed(3);
@@ -452,9 +452,9 @@ function showResults() {
   });
   const p = current.prizes[S.myTeam];
   const catchUp = (p.rank - 1) * ECONOMY.catchUpPerRank;
-  $("#resPrize").innerHTML = `💰 Bu yarıştan kazancın: <b>${money(p.prize)}</b>
-    <div class="small muted">Katılım ${money(ECONOMY.prizeBase)} + ${p.pts} puan × ${money(ECONOMY.prizePerPoint)}${catchUp ? ` + şampiyona desteği ${money(catchUp)}` : ""} · Kasandaki toplam: ${money(S.teams[S.myTeam].money)}</div>`;
-  $("#resTitle").textContent = `${tr.flag} ${tr.name} — Sonuçlar`;
+  $("#resPrize").innerHTML = `💰 ${T("Bu yarıştan kazancın")}: <b>${money(p.prize)}</b>
+    <div class="small muted">${T("Katılım")} ${money(ECONOMY.prizeBase)} + ${T("{n} puan", { n: p.pts })} × ${money(ECONOMY.prizePerPoint)}${catchUp ? ` + ${T("şampiyona desteği")} ${money(catchUp)}` : ""} · ${T("Kasandaki toplam")}: ${money(S.teams[S.myTeam].money)}</div>`;
+  $("#resTitle").textContent = `${tr.flag} ${trackName(tr)} — ${T("Sonuçlar")}`;
   $("#resTable").innerHTML = rows;
   show("results");
 }
@@ -465,11 +465,11 @@ function showSeasonEnd() {
   const drivers = allDrivers().map((d) => ({ ...d, pts: S.driverPts[d.id] })).sort((a, b) => b.pts - a.pts);
   const rank = teamRanking();
   const champ = team(rank[0]);
-  $("#topInfo").textContent = `${t.name} · Sezon bitti`;
+  $("#topInfo").textContent = `${t.name} · ${T("Sezon bitti")}`;
   $("#seasonSummary").innerHTML = `
-    <p>Pilotlar şampiyonu: <b>${drivers[0].name}</b> (${drivers[0].team.name}) — ${drivers[0].pts} puan</p>
-    <p>Takımlar şampiyonu: <b>${champ.name}</b> — ${S.teamPts[champ.id]} puan</p>
-    <p>Senin takımın <b style="color:${t.color}">${t.name}</b> sezonu <b>${rank.indexOf(S.myTeam) + 1}.</b> sırada bitirdi.</p>`;
+    <p>${T("Pilotlar şampiyonu")}: <b>${drivers[0].name}</b> (${drivers[0].team.name}) — ${T("{n} puan", { n: drivers[0].pts })}</p>
+    <p>${T("Takımlar şampiyonu")}: <b>${champ.name}</b> — ${T("{n} puan", { n: S.teamPts[champ.id] })}</p>
+    <p>${T("Senin takımın {team} sezonu {n}. sırada bitirdi.", { team: `<b style="color:${t.color}">${t.name}</b>`, n: rank.indexOf(S.myTeam) + 1 })}</p>`;
   renderStandings($("#seasonStandings"));
   show("seasonEnd");
 }
@@ -484,7 +484,7 @@ $("#runRaceBtn").onclick = runRace;
 $("#playBtn").onclick = togglePlay;
 $("#toEndBtn").onclick = () => {
   if (replay.i >= current.track.laps) { showResults(); return; }
-  stopReplay(); replay.i = current.track.laps; replay.rt = mapEnd(); renderReplay(); $("#playBtn").textContent = "▶ Baştan izle";
+  stopReplay(); replay.i = current.track.laps; replay.rt = mapEnd(); renderReplay(); $("#playBtn").textContent = T("▶ Baştan izle");
 };
 $("#scrub").oninput = (e) => {
   replay.i = +e.target.value;
@@ -501,10 +501,18 @@ $("#newSeasonBtn").onclick = () => { clearSave(); renderMenu(); };
 
 let resetArmed = false;
 $("#resetBtn").onclick = () => {
-  if (resetArmed) { clearSave(); resetArmed = false; $("#resetBtn").textContent = "Yeni oyun"; renderMenu(); return; }
+  if (resetArmed) { clearSave(); resetArmed = false; $("#resetBtn").textContent = T("Yeni oyun"); renderMenu(); return; }
   resetArmed = true;
-  $("#resetBtn").textContent = "Emin misin? Tekrar tıkla";
-  setTimeout(() => { resetArmed = false; $("#resetBtn").textContent = "Yeni oyun"; }, 3000);
+  $("#resetBtn").textContent = T("Emin misin? Tekrar tıkla");
+  setTimeout(() => { resetArmed = false; $("#resetBtn").textContent = T("Yeni oyun"); }, 3000);
 };
 
+// Dil: cihaz diline göre (ana oyunla aynı ayar); sabit metinleri çevir
+if (window.PW_I18N) {
+  PW_I18N.applyStatic();
+  document.documentElement.lang = PW_I18N.lang;
+  document.title = T("PitWall Manager — Deneme ligi (çevrimdışı)");
+  const lb = $("#demoLang");
+  if (lb) { lb.textContent = PW_I18N.lang === "tr" ? "🌐 EN" : "🌐 TR"; lb.onclick = () => PW_I18N.setLang(PW_I18N.lang === "tr" ? "en" : "tr"); }
+}
 renderMenu();
