@@ -130,7 +130,7 @@
     view.timer = requestAnimationFrame(frame);
     $("#playBtn").textContent = T("⏸ Duraklat");
   }
-  // 1x: bir tur ≈ 3 sn, 2x ≈ 1,2 sn, 4x ≈ 0,36 sn
+  // 1x: bir tur ≈ 6 sn, 2x ≈ 1,2 sn, 4x ≈ 0,36 sn
   const simRate = () => S.M.medLap / (view.speed * 3 / 1000);
   function frame(now) {
     const dt = Math.min(100, now - view.last); view.last = now;
