@@ -595,3 +595,39 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
 .tm-cam:hover { background: rgba(30,34,40,.95); }
 .bc-stage .tm-cam { bottom: auto; top: 86px; }
 @media (max-width: 700px) { .bc-stage .tm-cam { top: auto; bottom: 8px; right: 8px; font-size: 11px; padding: 6px 9px; } .bc-banner { bottom: 44px; } }
+
+/* ---------- Yarış ekranı: telefon düzeni ----------
+   Sıra: başlık → pist haritası → kontroller → kaydırma çubuğu → tablo → pilotlarım/olaylar */
+@media (max-width: 700px) {
+  #race:not(.hidden) { display: flex; flex-direction: column; gap: 10px; }
+  #race .race-head, #race .race-grid { display: contents; }
+  #race .race-grid.hidden, #race .race-grid.hidden > * { display: none !important; }
+  #race .race-head > div:first-child { order: 1; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 4px 0; }
+  #race .race-title { font-size: 16px; }
+  #race .lap-info { display: none; } /* tur ve hava haritanın üstünde zaten var */
+  :root .bc-stage .tm-label { font-size: 2.3px; }
+  #race #qualiPanel { order: 2; }
+  #race #bcStage { order: 2; margin: 0 -6px; border-radius: 12px; }
+  #race .controls { order: 3; gap: 6px; justify-content: space-between; }
+  #race .controls .btn { padding: 8px 10px; font-size: 13px; }
+  #race .controls .speed span { display: none; }
+  #race .controls .speed { gap: 4px; }
+  #race .controls .chip { padding: 6px 9px; }
+  #race #scrub { order: 4; width: 100%; margin: 0; }
+  #race .race-grid > .card:not(.bc-stage) { order: 5; padding: 8px; overflow-x: auto; }
+  #race .race-grid > .side { order: 6; }
+
+  /* Harita tam genişlik; sıralama şeridi küçük: ilk 3 + benim pilotlarım */
+  .bc-stage .track-map { height: 58vh; min-height: 300px; max-height: 540px; padding: 6px; }
+  .bc-tower { width: 108px; left: 6px; top: 6px; bottom: auto; gap: 2px; }
+  .bc-tower .bc-row { display: none; }
+  .bc-tower .bc-row:nth-child(-n+3), .bc-tower .bc-row.mine { display: grid; }
+  .bc-banner { left: 8px; right: 8px; bottom: 46px; }
+  .bc-top { top: 6px; right: 6px; }
+
+  /* Tablo ekrana sığsın: takım adı, son tur ve pit sütunları gizli */
+  #board { font-size: 13px; }
+  #board th:nth-child(4), #board td:nth-child(4), #board th:nth-child(6), #board td:nth-child(6) { display: none; }
+  #board td .muted.small { display: none; }
+  #board td, #board th { padding: 6px 4px; }
+}
