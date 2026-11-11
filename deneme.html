@@ -4,12 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PitWall Manager — Deneme ligi (çevrimdışı)</title>
-  <link rel="stylesheet" href="style.css?v=0.40">
+  <link rel="stylesheet" href="style.css?v=0.41">
 </head>
 <body>
-  <header class="topbar">
-    <div class="logo">PITWALL<span>MANAGER</span></div>
+  <header class="topbar demo-top">
+    <a class="logo" href="./" title="Ana sayfaya dön" style="text-decoration:none;color:inherit">PITWALL<span>MANAGER</span></a>
     <div id="topInfo" class="top-info"></div>
+    <div class="demo-nav">
+      <a class="btn ghost" href="./">← Ana sayfa</a>
+      <a class="btn primary" href="./">Gerçek lige katıl</a>
+    </div>
   </header>
 
   <main>
@@ -84,6 +88,7 @@
           <div id="lapInfo" class="lap-info"></div>
         </div>
         <div class="controls">
+          <button id="raceBack" class="btn ghost">← Merkez</button>
           <button id="playBtn" class="btn primary">▶ İzle</button>
           <div class="speed">
             <span>Hız:</span>
@@ -134,11 +139,11 @@
   </main>
 
   <!-- Ortak dosyalar (ileride sunucu da bunları kullanacak) -->
-  <script src="shared/data.js?v=0.40"></script>
-  <script src="shared/engine.js?v=0.40"></script>
+  <script src="shared/data.js?v=0.41"></script>
+  <script src="shared/engine.js?v=0.41"></script>
   <!-- Arayüz -->
-  <script src="ui/trackmap.js?v=0.40"></script>
-  <script src="app.js?v=0.40"></script>
+  <script src="ui/trackmap.js?v=0.41"></script>
+  <script src="app.js?v=0.41"></script>
   <!-- Cloudflare Web Analytics (çerezsiz ziyaret istatistiği) --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "7c474722022747379d3881f0cbeb6120"}'></script>
 </body>
 </html>

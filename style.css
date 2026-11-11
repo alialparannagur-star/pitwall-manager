@@ -632,3 +632,8 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
   #board td .muted.small { display: none; }
   #board td, #board th { padding: 6px 4px; }
 }
+
+/* Deneme ligi üst menüsü */
+.demo-nav { display: flex; gap: 8px; margin-left: auto; }
+.demo-nav .btn { padding: 7px 12px; font-size: 13px; text-decoration: none; }
+@media (max-width: 700px) { .demo-top { flex-wrap: wrap; row-gap: 10px; } .demo-top .top-info { display: none; } .demo-nav { width: 100%; margin-left: 0; } .demo-nav .btn { flex: 1; text-align: center; white-space: nowrap; } }

@@ -494,6 +494,8 @@ $("#scrub").oninput = (e) => {
 $("#onlyMine").onchange = renderReplay;
 document.querySelectorAll("[data-speed]").forEach((b) => (b.onclick = () => setSpeed(+b.dataset.speed)));
 $("#resContinue").onclick = showHub;
+// Yarış izlerken merkeze dön (sonuçlar zaten işlendi)
+$("#raceBack").onclick = () => { stopReplay(); showHub(); };
 $("#resGarage").onclick = showGarage;
 $("#newSeasonBtn").onclick = () => { clearSave(); renderMenu(); };
 
