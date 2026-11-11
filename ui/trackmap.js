@@ -167,8 +167,8 @@
           return { lap: k, f: ff, pit: (ff - 1 - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
         }
       }
-      if (k > 1 && laps[k - 1][i].p && f < G.PIT_TO) return { lap: k, f, pit: (f - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
-      return { lap: k, f };
+      if (k > 1 && laps[k - 1][i].p && f < G.PIT_TO) return { lap: k, f, T, pit: (f - G.PIT_FROM) / (G.PIT_TO - G.PIT_FROM) };
+      return { lap: k, f, T };
     }
     // Çizim
     svg.setAttribute("viewBox", G.box.join(" "));
@@ -178,7 +178,7 @@
       <line class="tm-start" x1="${a[0] - nx}" y1="${a[1] - ny}" x2="${a[0] + nx}" y2="${a[1] + ny}"/><g class="tm-cars"></g>`;
     const road = svg.querySelector(".tm-road"), grp = svg.querySelector(".tm-cars");
     // Takip kamerası: yakın çekimde mesafeler gerçek ölçekte okunur; araçlar ekranda aynı boyda kalır
-    const ZOOM = 2.6;
+    const ZOOM = 4.5;
     const tt = (k) => (window.T ? window.T(k) : k);
     const box = G.box, cam = { x: box[0] + box[2] / 2, y: box[1] + box[3] / 2, z: 1 };
     let mode = (() => { try { return localStorage.getItem("pitwall_cam") || "follow"; } catch (e) { return "follow"; } })();
@@ -211,26 +211,30 @@
       grp.appendChild(el);
       dots[i] = el;
     });
-    // Gerçekçi konum: mesafe = süre farkı. Çok yakın araçlar (≈ bir araç boyu) şeritlere ayrılır, yan yana görünür.
-    let NEAR = 3.4 / G.at.total;          // bu kadar yakınsa aynı noktada sayılır (tur kesri), zoom ile küçülür
-    let LANE_W = 1.55;                    // şerit aralığı (pist birimi), zoom ile daralır
+    // Gerçekçi konum: mesafe = süre farkı. Araçlar yarış çizgisinde arka arkaya gider;
+    // yalnızca sollama anında (iki araç üst üste geldiğinde) hızlı olan yana çıkıp geçer, sonra çizgiye döner.
+    let NEAR = 0.14 / medLap;             // aynı hiza sayılacak fark (tur kesri)
+    let LANE_W = 1.55;                    // yana çıkma mesafesi (pist birimi)
     const laneOf = new Array(n).fill(0);
     function assignLanes(P) {
       const live = [];
       for (let i = 0; i < n; i++) {
         const p = P[i];
         if (p.out || p.done || p.pit != null || (p.lap === 1 && p.f < 0.12)) { laneOf[i] = 0; continue; }
-        live.push({ i, x: ((p.f % 1) + 1) % 1 });
+        live.push({ i, x: ((p.f % 1) + 1) % 1, T: p.T || 1e9 });
       }
       live.sort((a, b) => b.x - a.x);
-      for (let k = 0; k < live.length; k++) {
-        const cur = live[k], used = new Set();
-        for (let j = k - 1; j >= 0 && live[j].x - cur.x < NEAR; j--) used.add(laneOf[live[j].i]);
-        // turun başı/sonu civarındaki komşular
-        if (cur.x < NEAR) for (let j = 0; j < k && live[j].x > 1 - NEAR + cur.x; j++) used.add(laneOf[live[j].i]);
-        const prefer = [laneOf[cur.i], 0, 1, -1, 2, -2];
-        laneOf[cur.i] = prefer.find((l) => !used.has(l));
+      const next = new Array(n).fill(0);
+      for (let k = 1; k < live.length; k++) {
+        const ahead = live[k - 1], cur = live[k];
+        if (ahead.x - cur.x >= NEAR) continue;
+        // Üst üste: bu turda daha hızlı olan atak yapıyor ve yana çıkıyor
+        const atk = cur.T < ahead.T ? cur : ahead, def = atk === cur ? ahead : cur;
+        if (next[atk.i] !== 0) continue;
+        const side = laneOf[atk.i] || (next[def.i] === 1 ? -1 : 1); // önceki tarafı koru
+        next[atk.i] = next[def.i] === side ? -side : side;
       }
+      for (let i = 0; i < n; i++) laneOf[i] = next[i];
     }
     function draw(rt, lapIdx) {
       lastDraw = [rt, lapIdx];
@@ -247,7 +251,7 @@
       const zT = mode === "follow" && tgt >= 0 ? ZOOM : 1;
       cam.z += (zT - cam.z) * (jumping ? 1 : 0.12);
       const sc = Math.min(1, 1.55 / cam.z);
-      NEAR = (3.4 * sc) / G.at.total; LANE_W = 1.55 * Math.max(0.55, sc);
+      NEAR = 0.14 / medLap; LANE_W = 1.5 * Math.max(0.42, sc); // yalnızca gerçekten aynı hizadayken (≈0,14 sn) yana çıkar
       assignLanes(P);
       for (let i = 0; i < n; i++) {
         const pos = P[i];
@@ -257,7 +261,7 @@
           let target = laneOf[i] * LANE_W;
           if (pos.lap === 1 && pos.f < 0.12) target = (cars[i].g % 2 ? 1 : -1) * 0.95 * (1 - Math.max(0, pos.f) / 0.12); // iki sıralı start
           const cur = el._lat == null ? target : el._lat;
-          el._lat = cur + (target - cur) * 0.18; // şerit değişimi yumuşak
+          el._lat = jumping ? target : cur + (target - cur) * 0.14; // yana çıkış/dönüş yumuşak
           if (Math.abs(el._lat) > 0.01) {
             const p0 = G.at(pos.f - 0.002), p1 = G.at(pos.f + 0.002), ddx = p1[0] - p0[0], ddy = p1[1] - p0[1], ln = Math.hypot(ddx, ddy) || 1;
             xy = [xy[0] - (ddy / ln) * el._lat, xy[1] + (ddx / ln) * el._lat];
