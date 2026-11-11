@@ -593,6 +593,7 @@ h2.lp-h2 { font-size: 34px !important; margin-bottom: 16px; }
 .tm-cam { position: absolute; right: 14px; bottom: 14px; z-index: 3; background: rgba(10,12,15,.85); color: #fff; border: 1px solid #3a4047;
   border-radius: 8px; padding: 7px 11px; font: 700 12.5px Inter, sans-serif; cursor: pointer; }
 .tm-cam:hover { background: rgba(30,34,40,.95); }
+.tm-cam.hidden { display: none; }
 .bc-stage .tm-cam { bottom: auto; top: 86px; }
 @media (max-width: 700px) { .bc-stage .tm-cam { top: auto; bottom: 8px; right: 8px; font-size: 11px; padding: 6px 9px; } .bc-banner { bottom: 44px; } }
 

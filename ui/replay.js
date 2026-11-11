@@ -144,8 +144,11 @@
     }
     view.timer = requestAnimationFrame(frame);
   }
+  // Takip kamerası yalnızca bilgisayarda ve 1x hızda (hızlı oynatmada kamera yetişemiyor)
+  const followAllowed = () => window.innerWidth > 700 && view.speed === 2000;
   function setSpeed(ms) {
     view.speed = ms;
+    if (S && S.map && S.map.setFollowAllowed) S.map.setFollowAllowed(followAllowed());
     document.querySelectorAll("#race [data-speed]").forEach((b) => b.classList.toggle("active", +b.dataset.speed === ms));
   }
 
@@ -155,6 +158,7 @@
     S.map = PW_RACEMAP.create($("#trackMap"), {
       trackId: R.track.id, laps: R.laps, sc: R.sc, wx: R.wx, mine,
       cars: R.entries.map((e) => ({ color: e.color, name: e.name, team: e.teamName })),
+      allowFollow: followAllowed(),
     });
     S.M = S.map.model;
   }

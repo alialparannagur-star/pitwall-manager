@@ -327,6 +327,7 @@ function runRace() {
     cars: entries.map((e) => ({ color: e.color, name: e.name, team: e.teamName })),
     mine: new Set(entries.map((e, i) => (e.teamId === S.myTeam ? i : -1)).filter((i) => i >= 0)),
     sc: result.laps.map((snap) => snap.sc || 0), wx: result.laps.map((snap) => snap.w || 0),
+    allowFollow: window.innerWidth > 700 && replay.speed === 2000,
   }) : null;
   replay.rt = 0;
 
@@ -368,6 +369,7 @@ function frame(now) {
 }
 function setSpeed(ms) {
   replay.speed = ms;
+  if (current && current.map && current.map.setFollowAllowed) current.map.setFollowAllowed(window.innerWidth > 700 && ms === 2000);
   document.querySelectorAll("[data-speed]").forEach((b) => b.classList.toggle("active", +b.dataset.speed === ms));
 }
 

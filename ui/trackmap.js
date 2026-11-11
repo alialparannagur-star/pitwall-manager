@@ -181,14 +181,19 @@
     const ZOOM = 4.5;
     const tt = (k) => (window.T ? window.T(k) : k);
     const box = G.box, cam = { x: box[0] + box[2] / 2, y: box[1] + box[3] / 2, z: 1 };
-    let mode = (() => { try { return localStorage.getItem("pitwall_cam") || "follow"; } catch (e) { return "follow"; } })();
+    let mode = (() => { try { return localStorage.getItem("pitwall_cam") || "full"; } catch (e) { return "full"; } })();
+    let followOK = o.allowFollow !== false; // telefonda ve hızlı oynatmada kapalı
     let camBtn = svg.parentElement && svg.parentElement.querySelector(".tm-cam");
     if (svg.parentElement && !camBtn) {
       camBtn = document.createElement("button");
       camBtn.type = "button"; camBtn.className = "tm-cam";
       svg.parentElement.appendChild(camBtn);
     }
-    const camLabel = () => { if (camBtn) camBtn.textContent = mode === "follow" ? "🗺️ " + tt("Tüm pist") : "🎥 " + tt("Takip kamerası"); };
+    const camLabel = () => {
+      if (!camBtn) return;
+      camBtn.classList.toggle("hidden", !followOK);
+      camBtn.textContent = mode === "follow" ? "🗺️ " + tt("Tüm pist") : "🎥 " + tt("Takip kamerası");
+    };
     if (camBtn) camBtn.onclick = () => {
       mode = mode === "follow" ? "full" : "follow";
       try { localStorage.setItem("pitwall_cam", mode); } catch (e) {}
@@ -248,9 +253,9 @@
         const d = p.lap + p.f, w = (mine.size ? (mine.has(i) ? 1000 : 0) : 0) + d;
         if (w > best) { best = w; tgt = i; }
       }
-      const zT = mode === "follow" && tgt >= 0 ? ZOOM : 1;
+      const zT = followOK && mode === "follow" && tgt >= 0 ? ZOOM : 1;
       cam.z += (zT - cam.z) * (jumping ? 1 : 0.12);
-      const sc = Math.min(1, 1.55 / cam.z);
+      const sc = cam.z > 1.02 ? Math.min(0.72, 1.55 / cam.z) : 0.72; // tüm pistte araçlar biraz küçük
       NEAR = 0.14 / medLap; LANE_W = 1.5 * Math.max(0.42, sc); // yalnızca gerçekten aynı hizadayken (≈0,14 sn) yana çıkar
       assignLanes(P);
       for (let i = 0; i < n; i++) {
@@ -298,7 +303,11 @@
     }
     // Atlama (kaydırma çubuğu) sonrası kamerayı anında yerleştir
     function jump() { if (lastDraw) { const [a, b] = lastDraw; jumping = true; draw(a, b); draw(a, b); jumping = false; } }
-    return { model, lapAt, draw, jump };
+    function setFollowAllowed(ok) {
+      if (followOK === ok) return;
+      followOK = ok; camLabel(); jump();
+    }
+    return { model, lapAt, draw, jump, setFollowAllowed };
   }
 
   window.PW_TRACKMAP = { get, ids: Object.keys(SHAPES) };
