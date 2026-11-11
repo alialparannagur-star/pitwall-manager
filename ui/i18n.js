@@ -289,6 +289,8 @@
     "GÜVENLİK ARACI": "SAFETY CAR",
     "YEŞİL BAYRAK": "GREEN FLAG",
     "Takım telsizi": "Team radio",
+    "Tüm pist": "Full track",
+    "Takip kamerası": "Follow camera",
     "İlk {n} takım {lig}'e yükselir": "Top {n} teams go up to {lig}",
     "Son {n} takım {lig}'e düşer": "Bottom {n} teams go down to {lig}",
     "{gp} sonucu · {team}": "{gp} result · {team}",

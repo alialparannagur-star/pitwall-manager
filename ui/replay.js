@@ -294,7 +294,7 @@
       if (!$("#qualiPanel").classList.contains("hidden")) hideQuali();
       view.i = +e.target.value;
       view.rt = view.i >= lastIdx() ? S.M.endT : S.M.leaderT[view.i] || 0;
-      render(); drawMap();
+      render(); drawMap(); if (S.map && S.map.jump) S.map.jump();
     };
     $("#onlyMine").onchange = render;
     document.querySelectorAll("#race [data-speed]").forEach((b) => (b.onclick = () => setSpeed(+b.dataset.speed)));
@@ -315,6 +315,7 @@
     const i = lapAt(view.rt);
     if (i !== view.i) { view.i = i; render(); }
     drawMap();
+    if (S.map.jump) S.map.jump();
   }
   window.PW_Replay = { open, showResults, stop, seekLap };
 })();

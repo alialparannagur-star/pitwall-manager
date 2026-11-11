@@ -81,7 +81,7 @@
     for (let i = 0; i < dense.length; i++) { const a = dense[i], b = dense[(i + 1) % dense.length]; area += a[0] * b[1] - b[0] * a[1]; }
     const inward = area > 0 ? 1 : -1;
     // Pit yolu: finişten hemen önce girer, ana düzlük boyunca içeride ilerler
-    const PIT_FROM = -0.03, PIT_TO = 0.07, OFF = 4.4;
+    const PIT_FROM = -0.03, PIT_TO = 0.07, OFF = 5.6;
     const pit = [];
     for (let k = 0; k <= 30; k++) {
       const p = PIT_FROM + (PIT_TO - PIT_FROM) * (k / 30);
@@ -177,6 +177,25 @@
     svg.innerHTML = `<path class="tm-pit" d="${G.pitD}"/><path class="tm-edge" d="${G.d}"/><path class="tm-road" d="${G.d}"/>
       <line class="tm-start" x1="${a[0] - nx}" y1="${a[1] - ny}" x2="${a[0] + nx}" y2="${a[1] + ny}"/><g class="tm-cars"></g>`;
     const road = svg.querySelector(".tm-road"), grp = svg.querySelector(".tm-cars");
+    // Takip kamerası: yakın çekimde mesafeler gerçek ölçekte okunur; araçlar ekranda aynı boyda kalır
+    const ZOOM = 2.6;
+    const tt = (k) => (window.T ? window.T(k) : k);
+    const box = G.box, cam = { x: box[0] + box[2] / 2, y: box[1] + box[3] / 2, z: 1 };
+    let mode = (() => { try { return localStorage.getItem("pitwall_cam") || "follow"; } catch (e) { return "follow"; } })();
+    let camBtn = svg.parentElement && svg.parentElement.querySelector(".tm-cam");
+    if (svg.parentElement && !camBtn) {
+      camBtn = document.createElement("button");
+      camBtn.type = "button"; camBtn.className = "tm-cam";
+      svg.parentElement.appendChild(camBtn);
+    }
+    const camLabel = () => { if (camBtn) camBtn.textContent = mode === "follow" ? "🗺️ " + tt("Tüm pist") : "🎥 " + tt("Takip kamerası"); };
+    if (camBtn) camBtn.onclick = () => {
+      mode = mode === "follow" ? "full" : "follow";
+      try { localStorage.setItem("pitwall_cam", mode); } catch (e) {}
+      camLabel(); jump();
+    };
+    camLabel();
+    let lastDraw = null, jumping = false;
     const scDot = document.createElementNS(SVGNS, "g");
     scDot.setAttribute("class", "tm-sc hidden");
     scDot.innerHTML = `<rect x="-2.6" y="-1.6" width="5.2" height="3.2" rx="0.8"/><text y="1">SC</text>`;
@@ -186,45 +205,66 @@
     o.cars.map((c, i) => i).sort((x, y) => (mine.has(x) ? 1 : 0) - (mine.has(y) ? 1 : 0)).forEach((i) => {
       const c = o.cars[i], my = mine.has(i), el = document.createElementNS(SVGNS, "g");
       el.setAttribute("class", "tm-car" + (my ? " mine" : ""));
-      el.innerHTML = `<g class="tm-rot"><path class="tm-body" d="${CAR_PATH}" fill="${escX(c.color)}" transform="scale(${my ? 1.12 : 0.78})"/></g>` +
+      el.innerHTML = `<g class="tm-rot"><path class="tm-body" d="${CAR_PATH}" fill="${escX(c.color)}" transform="scale(${my ? 0.78 : 0.56})"/></g>` +
         (my ? (mineNo++ % 2 ? `<text class="tm-label" x="-3" y="4.4" text-anchor="end">` : `<text class="tm-label" x="3" y="-2.6">`) + `${escX(String(c.name).split(" ").slice(-1)[0])}</text>` : "") +
         `<title>${escX(c.name)}${c.team ? " · " + escX(c.team) : ""}</title>`;
       grp.appendChild(el);
       dots[i] = el;
     });
-    // Görsel aralık: pistte yan yana gelen araçlar üst üste binmesin (sıralama/süreler değişmez)
-    const GAP = 4.4 / G.at.total; // ≈ bir araç boyu, tur kesri olarak
-    function spread(P) {
+    // Gerçekçi konum: mesafe = süre farkı. Çok yakın araçlar (≈ bir araç boyu) şeritlere ayrılır, yan yana görünür.
+    let NEAR = 3.4 / G.at.total;          // bu kadar yakınsa aynı noktada sayılır (tur kesri), zoom ile küçülür
+    let LANE_W = 1.55;                    // şerit aralığı (pist birimi), zoom ile daralır
+    const laneOf = new Array(n).fill(0);
+    function assignLanes(P) {
       const live = [];
       for (let i = 0; i < n; i++) {
         const p = P[i];
-        if (p.out || p.done || p.pit != null || (p.lap === 1 && p.f < 0.12)) continue;
+        if (p.out || p.done || p.pit != null || (p.lap === 1 && p.f < 0.12)) { laneOf[i] = 0; continue; }
         live.push({ i, x: ((p.f % 1) + 1) % 1 });
       }
       live.sort((a, b) => b.x - a.x);
-      for (let k = 1; k < live.length; k++) {
-        const prev = live[k - 1], cur = live[k];
-        if (prev.x - cur.x < GAP) cur.x = prev.x - GAP;
+      for (let k = 0; k < live.length; k++) {
+        const cur = live[k], used = new Set();
+        for (let j = k - 1; j >= 0 && live[j].x - cur.x < NEAR; j--) used.add(laneOf[live[j].i]);
+        // turun başı/sonu civarındaki komşular
+        if (cur.x < NEAR) for (let j = 0; j < k && live[j].x > 1 - NEAR + cur.x; j++) used.add(laneOf[live[j].i]);
+        const prefer = [laneOf[cur.i], 0, 1, -1, 2, -2];
+        laneOf[cur.i] = prefer.find((l) => !used.has(l));
       }
-      // turun başını geçen kuyruğu (çizgi civarı) sondan başa sar
-      live.forEach((c) => { P[c.i].f = c.x; });
     }
     function draw(rt, lapIdx) {
+      lastDraw = [rt, lapIdx];
       let lead = null;
       const P = [];
       for (let i = 0; i < n; i++) P.push(carPos(i, rt));
-      const leadDist = P.reduce((m, p) => (!p.out && !p.done ? Math.max(m, p.lap + p.f) : m), -1);
-      spread(P);
+      // Kamera hedefi: benim en öndeki aracım (yoksa lider)
+      let tgt = -1, best = -1;
+      for (let i = 0; i < n; i++) {
+        const p = P[i]; if (p.out || p.done) continue;
+        const d = p.lap + p.f, w = (mine.size ? (mine.has(i) ? 1000 : 0) : 0) + d;
+        if (w > best) { best = w; tgt = i; }
+      }
+      const zT = mode === "follow" && tgt >= 0 ? ZOOM : 1;
+      cam.z += (zT - cam.z) * (jumping ? 1 : 0.12);
+      const sc = Math.min(1, 1.55 / cam.z);
+      NEAR = (3.4 * sc) / G.at.total; LANE_W = 1.55 * Math.max(0.55, sc);
+      assignLanes(P);
       for (let i = 0; i < n; i++) {
         const pos = P[i];
         let xy = pos.pit != null ? G.pitAt(Math.max(0, Math.min(1, pos.pit))) : G.at(pos.f);
-        if (pos.lap === 1 && pos.pit == null && pos.f < 0.12) { // iki sıralı start
-          const p0 = G.at(pos.f - 0.002), p1 = G.at(pos.f + 0.002), ddx = p1[0] - p0[0], ddy = p1[1] - p0[1], ln = Math.hypot(ddx, ddy) || 1;
-          const side = (cars[i].g % 2 ? 1 : -1) * 0.95 * (1 - Math.max(0, pos.f) / 0.12);
-          xy = [xy[0] - (ddy / ln) * side, xy[1] + (ddx / ln) * side];
-        }
         const el = dots[i];
-        el.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`);
+        if (pos.pit == null && !pos.out) {
+          let target = laneOf[i] * LANE_W;
+          if (pos.lap === 1 && pos.f < 0.12) target = (cars[i].g % 2 ? 1 : -1) * 0.95 * (1 - Math.max(0, pos.f) / 0.12); // iki sıralı start
+          const cur = el._lat == null ? target : el._lat;
+          el._lat = cur + (target - cur) * 0.18; // şerit değişimi yumuşak
+          if (Math.abs(el._lat) > 0.01) {
+            const p0 = G.at(pos.f - 0.002), p1 = G.at(pos.f + 0.002), ddx = p1[0] - p0[0], ddy = p1[1] - p0[1], ln = Math.hypot(ddx, ddy) || 1;
+            xy = [xy[0] - (ddy / ln) * el._lat, xy[1] + (ddx / ln) * el._lat];
+          }
+        } else el._lat = 0;
+        el.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)}) scale(${sc.toFixed(3)})`);
+        el._xy = xy;
         // Yön: pistin (ya da pit yolunun) o noktadaki doğrultusu
         if (!pos.out || !el._ang) {
           let q0, q1;
@@ -237,14 +277,24 @@
         el.classList.toggle("in-pit", pos.pit != null);
         if (!pos.out && !pos.done) { const d = pos.lap + pos.f; if (!lead || d > lead.d) lead = { d, f: pos.f }; }
       }
-      if (leadDist >= 0 && lead) lead.f = ((leadDist % 1) + 1) % 1;
       const k = Math.min((lapIdx || 0) + 1, L), scOn = o.sc && o.sc[k] && lead && rt < endT - medLap * 0.15;
       scDot.classList.toggle("hidden", !scOn);
-      if (scOn) { const xy = G.at(lead.f + 0.03); scDot.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)})`); }
+      if (scOn) { const xy = G.at(lead.f + 0.03 * Math.max(0.45, sc)); scDot.setAttribute("transform", `translate(${xy[0].toFixed(2)} ${xy[1].toFixed(2)}) scale(${sc.toFixed(3)})`); }
+      // Kamera: hedef araca yumuşak takip, pist kutusunun dışına taşmadan
+      let cx = box[0] + box[2] / 2, cy = box[1] + box[3] / 2;
+      if (zT > 1 && tgt >= 0 && dots[tgt]._xy) { cx = dots[tgt]._xy[0]; cy = dots[tgt]._xy[1]; }
+      const k2 = jumping ? 1 : cam.z > 1.02 ? 0.14 : 0.25;
+      cam.x += (cx - cam.x) * k2; cam.y += (cy - cam.y) * k2;
+      const vw = box[2] / cam.z, vh = box[3] / cam.z;
+      const vx = Math.max(box[0], Math.min(box[0] + box[2] - vw, cam.x - vw / 2));
+      const vy = Math.max(box[1], Math.min(box[1] + box[3] - vh, cam.y - vh / 2));
+      svg.setAttribute("viewBox", `${vx.toFixed(2)} ${vy.toFixed(2)} ${vw.toFixed(2)} ${vh.toFixed(2)}`);
       const w = o.wx ? o.wx[Math.min(lapIdx || 0, o.wx.length - 1)] || 0 : 0;
       road.setAttribute("class", "tm-road" + (w >= 60 ? " vwet" : w >= 22 ? " wet" : w >= 5 ? " damp" : ""));
     }
-    return { model, lapAt, draw };
+    // Atlama (kaydırma çubuğu) sonrası kamerayı anında yerleştir
+    function jump() { if (lastDraw) { const [a, b] = lastDraw; jumping = true; draw(a, b); draw(a, b); jumping = false; } }
+    return { model, lapAt, draw, jump };
   }
 
   window.PW_TRACKMAP = { get, ids: Object.keys(SHAPES) };
