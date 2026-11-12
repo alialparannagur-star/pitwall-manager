@@ -5,7 +5,7 @@
 (function (g) {
   // Lastikler: offset = tur süresine etkisi (eksi = hızlı), wear = tur başına aşınma (%)
   const COMPOUNDS = {
-    S: { name: "Yumuşak", offset: -0.5, wear: 5.2 },
+    S: { name: "Yumuşak", offset: -0.75, wear: 5.2 },
     M: { name: "Orta",    offset: -0.22, wear: 3.2 },
     H: { name: "Sert",    offset:  0.0, wear: 2.2 },
     // Islak hava lastikleri: plana yazılmaz, yağmur gelince mühendis otomatik takar
