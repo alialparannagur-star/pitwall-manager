@@ -178,7 +178,7 @@
       <line class="tm-start" x1="${a[0] - nx}" y1="${a[1] - ny}" x2="${a[0] + nx}" y2="${a[1] + ny}"/><g class="tm-cars"></g>`;
     const road = svg.querySelector(".tm-road"), grp = svg.querySelector(".tm-cars");
     // Takip kamerası: yakın çekimde mesafeler gerçek ölçekte okunur; araçlar ekranda aynı boyda kalır
-    const ZOOM = 4.5;
+    const ZOOM = (() => { try { return +localStorage.getItem("pitwall_zoom") || 4.5; } catch (e) { return 4.5; } })();
     const tt = (k) => (window.T ? window.T(k) : k);
     const box = G.box, cam = { x: box[0] + box[2] / 2, y: box[1] + box[3] / 2, z: 1 };
     let mode = (() => { try { return localStorage.getItem("pitwall_cam") || "full"; } catch (e) { return "full"; } })();

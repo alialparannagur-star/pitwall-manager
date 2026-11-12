@@ -317,7 +317,7 @@
     stop();
     view.rt = lt[k] + (next - lt[k]) * Math.max(0, Math.min(1, fr));
     const i = lapAt(view.rt);
-    if (i !== view.i) { view.i = i; render(); }
+    if (i !== view.i) { const prev = view.i; view.i = i; render(); if (i > prev && i - prev <= 2) lapEvents(prev, i); }
     drawMap();
     if (S.map.jump) S.map.jump();
   }
