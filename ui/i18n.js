@@ -398,7 +398,7 @@
     // Strateji
     "Yarış öncesi strateji": "Pre-race strategy", "💾 Stratejiyi kaydet": "💾 Save strategy",
     "Başlangıç lastiği": "Starting tyre", "Pit stoplar": "Pit stops", "sonunda": "end", "+ Pit stop ekle": "+ Add pit stop",
-    "Plan önizleme": "Plan preview", "aşınma": "wear", "Sürüş modu": "Driving mode",
+    "Plan önizleme": "Plan preview", "Tur {a}–{b}": "Laps {a}–{b}", "Pit {n}": "Pit {n}", "Pit turu": "Pit lap", "tur {a}–{b} ({n} tur) → aşınma ~%{w}": "laps {a}–{b} ({n} laps) → wear ~{w}%", "aşınma": "wear", "Sürüş modu": "Driving mode",
     "Son 8 turda atak yap (lastik izin verirse)": "Push in the last 8 laps (if the tyres allow)",
     "Lastik güvenlik sınırı: aşınma bu değere ulaşırsa erken pite gir": "Tyre safety limit: pit early if wear reaches this level",
     "Mühendislerin önerileri": "Engineers' suggestions", "en hızlı tahmin": "fastest estimate",

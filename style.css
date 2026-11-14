@@ -190,6 +190,11 @@ table.board { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
 .stint { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 700; border-right: 2px solid var(--bg); color: #000; overflow: hidden; white-space: nowrap; }
 .stint.S { background: #ff6b6b; } .stint.M { background: #ffd43b; } .stint.H { background: #e9ecef; } .stint.I { background: #69db7c; } .stint.W { background: #74c0fc; }
 .stint-notes { font-size: 12px; color: var(--muted); }
+.stint { flex-direction: column; gap: 0; line-height: 1.1; }
+.stint .stint-range { font-size: 10px; font-weight: 600; opacity: .75; }
+.stints-wrap { position: relative; }
+.pit-pins { position: relative; height: 18px; margin-bottom: 4px; }
+.pit-pin { position: absolute; top: 0; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--accent, #e10600); white-space: nowrap; }
 .warn { color: var(--warn); font-size: 13px; margin-top: 6px; }
 .ok { color: var(--good-text); font-size: 13px; margin-top: 6px; }
 .sugg { display: flex; flex-direction: column; gap: 6px; }

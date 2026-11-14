@@ -71,8 +71,7 @@
         ${plan.stops.length < 3 ? `<button class="chip" data-add="1">${T("+ Pit stop ekle")}</button>` : ""}
 
         <div class="dp-label">${T("Plan önizleme")}</div>
-        <div class="stints">${est.stints.map((s) => `<div class="stint ${s.tyre}" style="flex:${Math.max(1, s.laps)}">${s.tyre} · ${s.laps}</div>`).join("")}</div>
-        <div class="stint-notes">${est.stints.map((s) => `${T(COMPOUNDS[s.tyre].name)}: ${T("{n} tur", { n: s.laps })} → ${T("aşınma")} ~%${Math.round(s.endWear)}`).join(" · ")}</div>
+        ${stintPreviewHtml(est)}
         ${msgs.join("")}
 
         <div class="dp-label">${T("Sürüş modu")}</div>
@@ -94,7 +93,7 @@
         <div class="dp-label">${T("Mühendislerin önerileri")}</div>
         <div class="sugg">${sugg.map((o, i) => `
           <button class="chip" data-sugg="${i}">
-            <span><b>${o.label}</b> · pit: ${T("tur")} ${o.plan.stops.map((s) => s.lap).join(", ")}</span>
+            <span><b>${o.label}</b> · ${T("Pit turu")}: ${o.plan.stops.map((s) => s.lap).join(", ")}</span>
             <span class="muted">${i === 0 ? T("en hızlı tahmin") : "+" + (o.est.time - best).toFixed(1) + " " + T("sn")}</span>
           </button>`).join("")}</div>`;
 
@@ -141,3 +140,14 @@
 
   window.PW_Strategy = { render, normalize, forecastHtml };
 })();
+
+// Plan önizleme: her bölümün tur aralığı ve aralarındaki pit işaretleri
+function stintPreviewHtml(est) {
+  let at = 0;
+  const parts = est.stints.map((s) => { const a = at + 1, b = at + s.laps; at = b; return { ...s, a, b }; });
+  const total = at || 1;
+  const bar = parts.map((s) => `<div class="stint ${s.tyre}" style="flex:${Math.max(1, s.laps)}" title="${T(PW_DATA.COMPOUNDS[s.tyre].name)} · ${T("Tur {a}–{b}", { a: s.a, b: s.b })}"><span>${s.tyre}</span><span class="stint-range">${s.a}–${s.b}</span></div>`).join("");
+  const pins = parts.slice(0, -1).map((s) => `<span class="pit-pin" style="left:${(100 * s.b / total).toFixed(2)}%">▲ ${T("Pit {n}", { n: s.b })}</span>`).join("");
+  const notes = parts.map((s) => `${T(PW_DATA.COMPOUNDS[s.tyre].name)}: ${T("tur {a}–{b} ({n} tur) → aşınma ~%{w}", { a: s.a, b: s.b, n: s.laps, w: Math.round(s.endWear) })}`).join(" · ");
+  return `<div class="stints-wrap"><div class="stints">${bar}</div>${pins ? `<div class="pit-pins">${pins}</div>` : ""}</div><div class="stint-notes">${notes}</div>`;
+}
