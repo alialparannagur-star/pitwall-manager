@@ -154,6 +154,7 @@ async function enter() {
     try {
       const list = await api.countries();
       ME.flags = Object.fromEntries(list.map((c) => [c.code, c.flag]));
+      ME.cnames = Object.fromEntries(list.map((c) => [c.code, c.name]));
       PW_I18N.rememberCountries(list);
     } catch (e) { ME.flags = {}; }
     window.PW_FLAGS = ME.flags;
@@ -435,21 +436,23 @@ async function renderHistory() {
       return;
     }
     const R = await api.records(histScope || null);
-    const drv = (x) => `${flagOf(x.nationality)} ${esc(x.name)}${x.retired ? ` <span class="muted small">(${T("emekli")})</span>` : ""} <span class="muted small">${esc(x.team || "")}</span>`;
+    // Tüm dünya sekmesinde takımın ülkesi bayrak olarak gösterilir
+    const tf = (cc) => (!histScope && cc && flagOf(cc) ? `<span class="team-cc" title="${esc(countryName(cc, (ME.cnames || {})[cc]))}">${flagOf(cc)}</span>` : "");
+    const drv = (x) => `${flagOf(x.nationality)} ${esc(x.name)}${x.retired ? ` <span class="muted small">(${T("emekli")})</span>` : ""} <span class="muted small">${tf(x.cc)}${esc(x.team || "")}</span>`;
     const list = (title, rows, fmtRow) => `<div class="rec-box"><div class="label">${title}</div>${rows && rows.length
       ? `<table class="mini">${rows.map((r, i) => `<tr><td class="rk">${i + 1}</td>${fmtRow(r)}</tr>`).join("")}</table>`
       : `<p class="muted small">${T("Henüz veri yok.")}</p>`}</div>`;
     body.innerHTML = `<div class="rec-grid">
       ${list("🏁 " + T("En çok yarış kazanan pilotlar"), R.wins, (r) => `<td>${drv(r)}</td><td class="num"><b>${r.n}</b></td>`)}
       ${list("🥇 " + T("En çok podyum"), R.podiums, (r) => `<td>${drv(r)}</td><td class="num"><b>${r.n}</b></td>`)}
-      ${list("🏎️ " + T("En çok galibiyet alan takımlar"), R.team_wins, (r) => `<td>${teamTag(r.name, r.color)}${userTag(r.user)}</td><td class="num"><b>${r.n}</b></td>`)}
-      ${list("🏆 " + T("En çok şampiyonluk"), R.titles, (r) => `<td>${teamTag(r.name, r.color)}${userTag(r.user)}</td><td class="num">${r.world ? `🏆×${r.world} ` : ""}${r.league ? `🏅×${r.league}` : ""}</td>`)}
-      ${list("📈 " + T("Bir sezonda en çok puan"), R.season_points, (r) => `<td>${teamTag(r.name, r.color)}${userTag(r.user)} <span class="muted small">${T("Sezon {n}", { n: r.season })}</span></td><td class="num"><b>${r.n}</b></td>`)}
+      ${list("🏎️ " + T("En çok galibiyet alan takımlar"), R.team_wins, (r) => `<td>${tf(r.cc)}${teamTag(r.name, r.color)}${userTag(r.user)}</td><td class="num"><b>${r.n}</b></td>`)}
+      ${list("🏆 " + T("En çok şampiyonluk"), R.titles, (r) => `<td>${tf(r.cc)}${teamTag(r.name, r.color)}${userTag(r.user)}</td><td class="num">${r.world ? `🏆×${r.world} ` : ""}${r.league ? `🏅×${r.league}` : ""}</td>`)}
+      ${list("📈 " + T("Bir sezonda en çok puan"), R.season_points, (r) => `<td>${tf(r.cc)}${teamTag(r.name, r.color)}${userTag(r.user)} <span class="muted small">${T("Sezon {n}", { n: r.season })}</span></td><td class="num"><b>${r.n}</b></td>`)}
       ${list("🚀 " + T("En geriden gelen galibiyetler"), R.comebacks, (r) => `<td>${drv(r)} <span class="muted small">· ${TRACK[r.track_id] ? TRACK[r.track_id].flag + " " + esc(trackName(TRACK[r.track_id])) : ""} · ${T("Sezon {n}", { n: r.season })}</span></td><td class="num">${T("{n}. sıradan", { n: r.grid })}</td>`)}
     </div>
     <div class="rec-box"><div class="label">⏱️ ${T("Pist rekorları (en hızlı tur)")}</div>
       ${R.fastest && R.fastest.length ? `<table class="mini">${R.fastest.map((f) => `<tr><td>${TRACK[f.track_id] ? TRACK[f.track_id].flag + " " + esc(trackName(TRACK[f.track_id])) : esc(f.track_id)}</td>
-        <td class="num"><b>${lapFmt(+f.best)}</b></td><td>${flagOf(f.nationality)} ${esc(f.name)} <span class="muted small">${esc(f.team)} · ${T("Sezon {n}", { n: f.season })}</span></td></tr>`).join("")}</table>`
+        <td class="num"><b>${lapFmt(+f.best)}</b></td><td>${flagOf(f.nationality)} ${esc(f.name)} <span class="muted small">${tf(f.cc)}${esc(f.team)} · ${T("Sezon {n}", { n: f.season })}</span></td></tr>`).join("")}</table>`
       : `<p class="muted small">${T("Henüz veri yok.")}</p>`}</div>`;
   } catch (e) {
     body.innerHTML = `<p class="bad-text">${esc(e.message)}</p>`;
